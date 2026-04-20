@@ -41,7 +41,7 @@ const INITIAL_TENSES = TENSE_ORDER.slice(0, 3);
 const DEFAULT_CONTENT_MODE = "tenses";
 const CONTENT_MODE_ORDER = ["tenses", "grammar", "lexical", "tools"];
 
-// Réglages faciles à modifier pour ajuster la durée, la difficulté et les sensations.
+// Réglages faciles à modifier pour ajuster la durée, le toucher, l'audio et les sensations.
 const GAME_RULES = {
   enableProgressiveBucketUnlocks: true,
   wordsPerGame: 30,
@@ -57,30 +57,35 @@ const GAME_RULES = {
   errorPenalty: 4,
   feedbackDurationMs: 740,
   soundDefaultOn: true,
+  musicDefaultOn: true,
+  musicVolume: 0.018,
+  touchSwipeThreshold: 42,
+  touchSwipeDominance: 1.2,
+  touchSwipeCooldownMs: 150,
 };
 
-// Vitesses en pixels par seconde. Elles augmentent après chaque réponse.
-const DIFFICULTIES = {
-  easy: {
-    label: "facile",
-    baseSpeed: 92,
-    speedIncrease: 2.25,
-    maxSpeed: 172,
-    allowedLevels: ["easy"],
+// Les niveaux CECRL filtrent surtout le contenu. La vitesse ne bouge que légèrement.
+const CEFR_LEVELS = {
+  A2: {
+    label: "A2",
+    baseSpeed: 88,
+    speedIncrease: 2,
+    maxSpeed: 166,
+    contentLevels: ["easy"],
   },
-  medium: {
-    label: "moyen",
-    baseSpeed: 118,
-    speedIncrease: 3.2,
-    maxSpeed: 220,
-    allowedLevels: ["easy", "medium"],
+  B1: {
+    label: "B1",
+    baseSpeed: 112,
+    speedIncrease: 3,
+    maxSpeed: 216,
+    contentLevels: ["easy", "medium"],
   },
-  hard: {
-    label: "difficile",
-    baseSpeed: 142,
-    speedIncrease: 4.35,
-    maxSpeed: 274,
-    allowedLevels: ["easy", "medium", "hard"],
+  B2: {
+    label: "B2",
+    baseSpeed: 136,
+    speedIncrease: 4.1,
+    maxSpeed: 268,
+    contentLevels: ["easy", "medium", "hard"],
   },
 };
 
@@ -632,9 +637,9 @@ const GAME_MODES = {
     items: GAME_FORMS,
     testItems: TEST_FORMS,
     unlocks: {
-      easy: { conditionnel_present: 8, passe_compose: 18 },
-      medium: { conditionnel_present: 6, passe_compose: 14 },
-      hard: { conditionnel_present: 5, passe_compose: 12 },
+      A2: { conditionnel_present: 10, passe_compose: 22 },
+      B1: { conditionnel_present: 7, passe_compose: 16 },
+      B2: { conditionnel_present: 5, passe_compose: 12 },
     },
     bestLabel: "Temps le plus réussi",
     hardestLabel: "Temps à retravailler",
@@ -655,9 +660,9 @@ const GAME_MODES = {
     initialBuckets: GRAMMAR_ORDER.slice(0, 3),
     items: GRAMMAR_ITEMS,
     unlocks: {
-      easy: { adverbe: 8, pronom: 18 },
-      medium: { adverbe: 6, pronom: 14 },
-      hard: { adverbe: 5, pronom: 12 },
+      A2: { adverbe: 10, pronom: 22 },
+      B1: { adverbe: 7, pronom: 16 },
+      B2: { adverbe: 5, pronom: 12 },
     },
     bestLabel: "Catégorie la plus réussie",
     hardestLabel: "Catégorie à retravailler",
@@ -677,9 +682,9 @@ const GAME_MODES = {
     initialBuckets: LEXICAL_ORDER.slice(0, 3),
     items: LEXICAL_ITEMS,
     unlocks: {
-      easy: { logement: 8, travail: 18 },
-      medium: { logement: 6, travail: 14 },
-      hard: { logement: 5, travail: 12 },
+      A2: { logement: 10, travail: 22 },
+      B1: { logement: 7, travail: 16 },
+      B2: { logement: 5, travail: 12 },
     },
     bestLabel: "Champ le plus réussi",
     hardestLabel: "Champ à retravailler",
@@ -699,9 +704,9 @@ const GAME_MODES = {
     initialBuckets: TOOL_ORDER.slice(0, 3),
     items: TOOL_ITEMS,
     unlocks: {
-      easy: { pronoms_relatifs: 8, connecteurs: 18 },
-      medium: { pronoms_relatifs: 6, connecteurs: 14 },
-      hard: { pronoms_relatifs: 5, connecteurs: 12 },
+      A2: { pronoms_relatifs: 10, connecteurs: 22 },
+      B1: { pronoms_relatifs: 7, connecteurs: 16 },
+      B2: { pronoms_relatifs: 5, connecteurs: 12 },
     },
     bestLabel: "Famille la plus réussie",
     hardestLabel: "Famille à retravailler",
@@ -712,25 +717,27 @@ const GAME_MODES = {
 
 const homeScreen = document.getElementById("homeScreen");
 const gameScreen = document.getElementById("gameScreen");
-const endScreen = document.getElementById("endScreen");
 const settingsForm = document.getElementById("settingsForm");
+const lastResultPanel = document.getElementById("lastResultPanel");
+const lastResultTitle = document.getElementById("lastResultTitle");
+const lastResultSummary = document.getElementById("lastResultSummary");
+const lastResultBreakdown = document.getElementById("lastResultBreakdown");
 const contentModeSelector = document.getElementById("contentModeSelector");
 const contentModeDescription = document.getElementById("contentModeDescription");
 const testDataButton = document.getElementById("testDataButton");
-const hintToggle = document.getElementById("hintToggle");
 const soundToggle = document.getElementById("soundToggle");
+const musicToggle = document.getElementById("musicToggle");
 const hintPanel = document.getElementById("hintPanel");
 const playfield = document.getElementById("playfield");
 const laneGrid = document.getElementById("laneGrid");
 const fallingWord = document.getElementById("fallingWord");
+const fastDropButton = document.getElementById("fastDropButton");
 const judgementLine = document.querySelector(".judgement-line");
 const binsContainer = document.getElementById("bins");
 const feedback = document.getElementById("feedback");
 const unlockBanner = document.getElementById("unlockBanner");
 const restartButton = document.getElementById("restartButton");
 const homeButton = document.getElementById("homeButton");
-const playAgainButton = document.getElementById("playAgainButton");
-const backToHomeButton = document.getElementById("backToHomeButton");
 const gameEyebrow = document.getElementById("gameEyebrow");
 const gameTitle = document.getElementById("gameTitle");
 const scoreEl = document.getElementById("score");
@@ -739,8 +746,6 @@ const errorEl = document.getElementById("errorCount");
 const streakEl = document.getElementById("streakCount");
 const progressEl = document.getElementById("progressStat");
 const progressBar = document.getElementById("progressBar");
-const finalSummary = document.getElementById("finalSummary");
-const tenseBreakdown = document.getElementById("tenseBreakdown");
 
 let bins = [];
 let lanes = [];
@@ -748,7 +753,7 @@ let lanes = [];
 const state = {
   mode: "game",
   contentMode: DEFAULT_CONTENT_MODE,
-  difficulty: "easy",
+  cefrLevel: "A2",
   useTestData: false,
   activeBuckets: [...GAME_MODES[DEFAULT_CONTENT_MODE].initialBuckets],
   unlockedDuringGame: 0,
@@ -774,6 +779,14 @@ const state = {
   bestStreak: 0,
   answered: 0,
   soundEnabled: GAME_RULES.soundDefaultOn,
+  musicEnabled: GAME_RULES.musicDefaultOn,
+  touch: {
+    active: false,
+    startX: 0,
+    startY: 0,
+    lastMoveAt: 0,
+    pointerId: null,
+  },
   errorStacks: createBucketCounter(DEFAULT_CONTENT_MODE),
   errorStackItems: createBucketStacks(DEFAULT_CONTENT_MODE),
   attemptsByBucket: createBucketCounter(DEFAULT_CONTENT_MODE),
@@ -790,7 +803,7 @@ function createBucketStacks(modeId = DEFAULT_CONTENT_MODE) {
 }
 
 function showScreen(screen) {
-  [homeScreen, gameScreen, endScreen].forEach((item) => item.classList.remove("screen--active"));
+  [homeScreen, gameScreen].forEach((item) => item.classList.remove("screen--active"));
   screen.classList.add("screen--active");
 }
 
@@ -839,6 +852,10 @@ function getSelectedValue(name) {
 
 function getSelectedContentMode() {
   return settingsForm.querySelector('input[name="contentMode"]:checked')?.value ?? DEFAULT_CONTENT_MODE;
+}
+
+function getSelectedCefrLevel() {
+  return settingsForm.querySelector('input[name="cefrLevel"]:checked')?.value ?? "A2";
 }
 
 function getModeConfig(modeId = state.contentMode) {
@@ -969,7 +986,7 @@ function unlockNextBucketIfReady() {
   if (!GAME_RULES.enableProgressiveBucketUnlocks) return false;
 
   const mode = getModeConfig();
-  const unlocks = mode.unlocks?.[state.difficulty] ?? {};
+  const unlocks = mode.unlocks?.[state.cefrLevel] ?? {};
   const nextBucket = mode.bucketOrder.find((bucket) => {
     return !state.activeBuckets.includes(bucket) && unlocks[bucket] && state.correct >= unlocks[bucket];
   });
@@ -1009,7 +1026,7 @@ function getAudioContext() {
 }
 
 function primeAudio() {
-  if (!state.soundEnabled) return;
+  if (!state.soundEnabled && !state.musicEnabled) return;
   const context = getAudioContext();
   if (context?.state === "suspended") {
     context.resume();
@@ -1053,6 +1070,56 @@ function playSound(type) {
   });
 }
 
+let musicGain = null;
+let musicTimer = 0;
+let musicStep = 0;
+
+function startBackgroundMusic() {
+  if (!state.musicEnabled || musicTimer) return;
+
+  const context = getAudioContext();
+  if (!context) return;
+  if (context.state === "suspended") {
+    context.resume();
+  }
+
+  musicGain = context.createGain();
+  musicGain.gain.setValueAtTime(GAME_RULES.musicVolume, context.currentTime);
+  musicGain.connect(context.destination);
+  scheduleMusicNote();
+  musicTimer = window.setInterval(scheduleMusicNote, 860);
+}
+
+function scheduleMusicNote() {
+  const context = audioContext;
+  if (!context || !musicGain) return;
+
+  const notes = [196, 246.94, 293.66, 329.63, 246.94, 220];
+  const frequency = notes[musicStep % notes.length];
+  musicStep += 1;
+
+  const oscillator = context.createOscillator();
+  const gain = context.createGain();
+  oscillator.type = "sine";
+  oscillator.frequency.value = frequency;
+  gain.gain.setValueAtTime(0.0001, context.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.32, context.currentTime + 0.04);
+  gain.gain.exponentialRampToValueAtTime(0.0001, context.currentTime + 0.62);
+  oscillator.connect(gain).connect(musicGain);
+  oscillator.start(context.currentTime);
+  oscillator.stop(context.currentTime + 0.68);
+}
+
+function stopBackgroundMusic() {
+  window.clearInterval(musicTimer);
+  musicTimer = 0;
+
+  if (musicGain) {
+    musicGain.disconnect();
+    musicGain = null;
+  }
+}
+
 function getAvailableItems() {
   const mode = getModeConfig();
   const isActiveItem = (item) => state.activeBuckets.includes(getItemBucket(item));
@@ -1061,15 +1128,15 @@ function getAvailableItems() {
     return (mode.testItems ?? mode.items).filter(isActiveItem);
   }
 
-  const allowed = DIFFICULTIES[state.difficulty].allowedLevels;
+  const allowed = CEFR_LEVELS[state.cefrLevel].contentLevels;
   const pool = mode.items.filter((item) => allowed.includes(item.level) && isActiveItem(item));
 
-  if (mode.weightIrregulars && state.difficulty === "hard") {
+  if (mode.weightIrregulars && state.cefrLevel === "B2") {
     const irregulars = pool.filter((item) => item.irregular);
     return shuffle([...pool, ...irregulars.slice(0, 28)]);
   }
 
-  if (mode.weightIrregulars && state.difficulty === "medium" && state.correct >= 12) {
+  if (mode.weightIrregulars && state.cefrLevel === "B1" && state.correct >= 12) {
     const irregulars = pool.filter((item) => item.irregular);
     return shuffle([...pool, ...irregulars.slice(0, 12)]);
   }
@@ -1092,6 +1159,8 @@ function resetStats() {
   state.targetX = 0;
   state.y = 0;
   state.isFastDropping = false;
+  state.touch.active = false;
+  state.touch.pointerId = null;
   state.lastFrameTime = 0;
   state.spawnTimer = 0;
   state.resolveTimer = 0;
@@ -1129,9 +1198,9 @@ function updateStats() {
 }
 
 function currentSpeed() {
-  const difficulty = DIFFICULTIES[state.difficulty];
-  const speed = difficulty.baseSpeed + state.answered * difficulty.speedIncrease;
-  const cappedSpeed = Math.min(speed, difficulty.maxSpeed);
+  const level = CEFR_LEVELS[state.cefrLevel];
+  const speed = level.baseSpeed + state.answered * level.speedIncrease;
+  const cappedSpeed = Math.min(speed, level.maxSpeed);
   return state.isFastDropping ? cappedSpeed * GAME_RULES.downAccelerationFactor : cappedSpeed;
 }
 
@@ -1161,14 +1230,16 @@ function startGame({ useTestData = false } = {}) {
   window.clearTimeout(state.feedbackTimer);
   state.mode = getSelectedValue("mode");
   state.contentMode = getSelectedContentMode();
-  state.difficulty = getSelectedValue("difficulty");
+  state.cefrLevel = getSelectedCefrLevel();
   state.useTestData = useTestData;
   state.soundEnabled = soundToggle.checked;
+  state.musicEnabled = musicToggle.checked;
   resetStats();
   state.deck = shuffle(getAvailableItems());
   fallingWord.hidden = true;
-  hintPanel.hidden = !hintToggle.checked;
-  hintPanel.open = hintToggle.checked;
+  lastResultPanel.hidden = true;
+  hintPanel.hidden = false;
+  hintPanel.open = true;
   renderLanesAndBins();
   renderHints();
   updateStats();
@@ -1180,6 +1251,7 @@ function startGame({ useTestData = false } = {}) {
   gameTitle.textContent = getModeConfig().headerTitle;
   showScreen(gameScreen);
   primeAudio();
+  startBackgroundMusic();
   playfield.focus();
   state.spawnTimer = window.setTimeout(spawnWord, 180);
 }
@@ -1367,11 +1439,13 @@ function finishGame() {
   window.clearTimeout(state.feedbackTimer);
   fallingWord.hidden = true;
   state.current = null;
+  setFastDrop(false);
   clearLaneHighlights();
   clearFeedback();
   playSound("end");
+  stopBackgroundMusic();
   renderFinalSummary();
-  showScreen(endScreen);
+  showScreen(homeScreen);
 }
 
 function renderFinalSummary() {
@@ -1390,9 +1464,12 @@ function renderFinalSummary() {
   const bestBucket = rankedBySuccess[0] ? getBucketInfo(rankedBySuccess[0]).label : mode.emptyBestLabel;
   const hardestBucket = rankedByErrors[0] && state.errorsByBucket[rankedByErrors[0]] > 0 ? getBucketInfo(rankedByErrors[0]).label : mode.noProblemLabel;
 
-  finalSummary.innerHTML = "";
+  lastResultPanel.hidden = false;
+  lastResultTitle.textContent = `${mode.label} · ${state.cefrLevel}`;
+  lastResultSummary.innerHTML = "";
   [
     ["Mode", mode.label],
+    ["Niveau", state.cefrLevel],
     ["Fin", state.gameOverReason || "Partie terminée"],
     ["Score final", state.score],
     ["Réponses", state.answered],
@@ -1410,10 +1487,10 @@ function renderFinalSummary() {
     const valueEl = document.createElement("strong");
     valueEl.textContent = value;
     card.append(labelEl, valueEl);
-    finalSummary.appendChild(card);
+    lastResultSummary.appendChild(card);
   });
 
-  tenseBreakdown.innerHTML = "";
+  lastResultBreakdown.innerHTML = "";
   mode.bucketOrder.forEach((bucket) => {
     const info = getBucketInfo(bucket);
     const attempts = state.attemptsByBucket[bucket];
@@ -1426,7 +1503,7 @@ function renderFinalSummary() {
     const value = document.createElement("span");
     value.textContent = attempts > 0 ? `${correct}/${attempts} OK · ${errors} erreur(s)` : "non joué";
     row.append(label, value);
-    tenseBreakdown.appendChild(row);
+    lastResultBreakdown.appendChild(row);
   });
 }
 
@@ -1443,7 +1520,6 @@ testDataButton.addEventListener("click", () => {
 });
 
 restartButton.addEventListener("click", () => startGame({ useTestData: state.useTestData }));
-playAgainButton.addEventListener("click", () => startGame({ useTestData: state.useTestData }));
 
 homeButton.addEventListener("click", () => {
   cancelAnimationFrame(state.animationId);
@@ -1453,13 +1529,10 @@ homeButton.addEventListener("click", () => {
   window.clearTimeout(state.feedbackTimer);
   fallingWord.hidden = true;
   state.current = null;
-  state.isFastDropping = false;
+  setFastDrop(false);
+  stopBackgroundMusic();
   clearLaneHighlights();
   clearFeedback();
-  showScreen(homeScreen);
-});
-
-backToHomeButton.addEventListener("click", () => {
   showScreen(homeScreen);
 });
 
@@ -1467,6 +1540,78 @@ soundToggle.checked = GAME_RULES.soundDefaultOn;
 soundToggle.addEventListener("change", () => {
   state.soundEnabled = soundToggle.checked;
   if (state.soundEnabled) primeAudio();
+});
+
+musicToggle.checked = GAME_RULES.musicDefaultOn;
+musicToggle.addEventListener("change", () => {
+  state.musicEnabled = musicToggle.checked;
+  if (state.musicEnabled && gameScreen.classList.contains("screen--active")) {
+    primeAudio();
+    startBackgroundMusic();
+  } else {
+    stopBackgroundMusic();
+  }
+});
+
+function setFastDrop(isActive) {
+  state.isFastDropping = isActive;
+  fastDropButton.classList.toggle("is-pressed", isActive);
+}
+
+function handleSwipeStart(event) {
+  if (!gameScreen.classList.contains("screen--active")) return;
+  if (event.target.closest(".bin") || event.target.closest(".fast-drop-button")) return;
+
+  state.touch.active = true;
+  state.touch.startX = event.clientX;
+  state.touch.startY = event.clientY;
+  state.touch.lastMoveAt = 0;
+  state.touch.pointerId = event.pointerId;
+  playfield.setPointerCapture?.(event.pointerId);
+}
+
+function handleSwipeMove(event) {
+  if (!state.touch.active || state.touch.pointerId !== event.pointerId) return;
+
+  const deltaX = event.clientX - state.touch.startX;
+  const deltaY = event.clientY - state.touch.startY;
+  const now = performance.now();
+  const isHorizontal = Math.abs(deltaX) > GAME_RULES.touchSwipeThreshold && Math.abs(deltaX) > Math.abs(deltaY) * GAME_RULES.touchSwipeDominance;
+
+  if (!isHorizontal || now - state.touch.lastMoveAt < GAME_RULES.touchSwipeCooldownMs) return;
+
+  event.preventDefault();
+  moveWord(deltaX > 0 ? 1 : -1);
+  state.touch.startX = event.clientX;
+  state.touch.startY = event.clientY;
+  state.touch.lastMoveAt = now;
+  playfield.classList.add("is-swiping");
+  window.setTimeout(() => playfield.classList.remove("is-swiping"), 120);
+}
+
+function handleSwipeEnd(event) {
+  if (state.touch.pointerId !== event.pointerId) return;
+  state.touch.active = false;
+  state.touch.pointerId = null;
+  playfield.releasePointerCapture?.(event.pointerId);
+}
+
+playfield.addEventListener("pointerdown", handleSwipeStart);
+playfield.addEventListener("pointermove", handleSwipeMove);
+playfield.addEventListener("pointerup", handleSwipeEnd);
+playfield.addEventListener("pointercancel", handleSwipeEnd);
+
+fastDropButton.addEventListener("pointerdown", (event) => {
+  event.preventDefault();
+  setFastDrop(true);
+  fastDropButton.setPointerCapture?.(event.pointerId);
+});
+
+["pointerup", "pointercancel", "pointerleave"].forEach((eventName) => {
+  fastDropButton.addEventListener(eventName, (event) => {
+    event.preventDefault();
+    setFastDrop(false);
+  });
 });
 
 window.addEventListener("keydown", (event) => {
@@ -1484,18 +1629,18 @@ window.addEventListener("keydown", (event) => {
 
   if (event.key === "ArrowDown") {
     event.preventDefault();
-    state.isFastDropping = true;
+    setFastDrop(true);
   }
 });
 
 window.addEventListener("keyup", (event) => {
   if (event.key === "ArrowDown") {
-    state.isFastDropping = false;
+    setFastDrop(false);
   }
 });
 
 window.addEventListener("blur", () => {
-  state.isFastDropping = false;
+  setFastDrop(false);
 });
 
 window.addEventListener("resize", () => {

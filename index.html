@@ -26,6 +26,15 @@
           </div>
         </div>
 
+        <section id="lastResultPanel" class="last-result" hidden aria-live="polite">
+          <div>
+            <p class="eyebrow">Dernier résultat</p>
+            <h2 id="lastResultTitle">Bilan de partie</h2>
+          </div>
+          <div id="lastResultSummary" class="final-summary"></div>
+          <div id="lastResultBreakdown" class="breakdown"></div>
+        </section>
+
         <form id="settingsForm" class="settings">
           <fieldset id="contentModeSelector" class="mode-selector" aria-describedby="contentModeDescription">
             <legend>Type de tri</legend>
@@ -34,18 +43,18 @@
           <p id="contentModeDescription" class="mode-description"></p>
 
           <fieldset>
-            <legend>Difficulté</legend>
+            <legend>Niveau CECRL</legend>
             <label>
-              <input type="radio" name="difficulty" value="easy" checked />
-              Facile
+              <input type="radio" name="cefrLevel" value="A2" checked />
+              A2
             </label>
             <label>
-              <input type="radio" name="difficulty" value="medium" />
-              Moyen
+              <input type="radio" name="cefrLevel" value="B1" />
+              B1
             </label>
             <label>
-              <input type="radio" name="difficulty" value="hard" />
-              Difficile
+              <input type="radio" name="cefrLevel" value="B2" />
+              B2
             </label>
           </fieldset>
 
@@ -62,13 +71,13 @@
           </fieldset>
 
           <label class="toggle">
-            <input id="hintToggle" type="checkbox" checked />
-            Afficher le rappel des terminaisons
+            <input id="soundToggle" type="checkbox" checked />
+            Effets sonores
           </label>
 
           <label class="toggle">
-            <input id="soundToggle" type="checkbox" checked />
-            Sons discrets
+            <input id="musicToggle" type="checkbox" checked />
+            Musique discrète
           </label>
 
           <div class="actions">
@@ -115,29 +124,19 @@
                 <span>Zone de dépôt</span>
               </div>
               <div id="fallingWord" class="falling-word" hidden></div>
+              <button id="fastDropButton" class="fast-drop-button" type="button" aria-label="Accélérer la chute">
+                Accélérer
+              </button>
               <div id="bins" class="bins" aria-label="Boîtes de réponse"></div>
             </div>
           </div>
         </section>
 
         <footer class="game-footer">
-          <p>Touches : gauche / droite pour viser, bas pour accélérer. Tu peux aussi cliquer un tiroir.</p>
+          <p>Desktop : gauche / droite pour viser, bas pour accélérer. Mobile : glisse à gauche/droite, ou touche un tiroir.</p>
           <button id="restartButton" type="button" class="button">Rejouer</button>
           <button id="homeButton" type="button" class="button button--quiet">Accueil</button>
         </footer>
-      </section>
-
-      <section id="endScreen" class="screen" aria-labelledby="endTitle">
-        <div class="end-panel">
-          <p class="eyebrow">Bilan</p>
-          <h2 id="endTitle">Partie terminée</h2>
-          <div id="finalSummary" class="final-summary"></div>
-          <div id="tenseBreakdown" class="breakdown"></div>
-          <div class="actions">
-            <button id="playAgainButton" type="button" class="button button--primary">Rejouer</button>
-            <button id="backToHomeButton" type="button" class="button">Changer les réglages</button>
-          </div>
-        </div>
       </section>
     </main>
 
