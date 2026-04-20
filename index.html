@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Chute des temps verbaux</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <main class="app" aria-label="Jeu pédagogique sur les temps verbaux">
+      <section id="homeScreen" class="screen screen--active" aria-labelledby="homeTitle">
+        <div class="intro">
+          <div class="classroom-mark" aria-hidden="true">
+            <svg viewBox="0 0 160 110" role="img">
+              <rect x="10" y="12" width="140" height="78" rx="8"></rect>
+              <path d="M29 34h48M29 52h72M29 70h38M108 34h22M111 52h18"></path>
+              <path d="M55 96h50M72 90v10M88 90v10"></path>
+            </svg>
+          </div>
+          <div>
+            <p class="eyebrow">FLE B1</p>
+            <h1 id="homeTitle">Chute des temps verbaux</h1>
+            <p class="lead">
+              Déplace la forme verbale avec les flèches et fais-la tomber dans la bonne boîte.
+            </p>
+          </div>
+        </div>
+
+        <form id="settingsForm" class="settings">
+          <fieldset>
+            <legend>Difficulté</legend>
+            <label>
+              <input type="radio" name="difficulty" value="easy" checked />
+              Facile
+            </label>
+            <label>
+              <input type="radio" name="difficulty" value="medium" />
+              Moyen
+            </label>
+            <label>
+              <input type="radio" name="difficulty" value="hard" />
+              Difficile
+            </label>
+          </fieldset>
+
+          <fieldset>
+            <legend>Mode</legend>
+            <label>
+              <input type="radio" name="mode" value="game" checked />
+              Partie limitée
+            </label>
+            <label>
+              <input type="radio" name="mode" value="training" />
+              Entraînement sans fin
+            </label>
+          </fieldset>
+
+          <label class="toggle">
+            <input id="hintToggle" type="checkbox" checked />
+            Afficher le rappel des terminaisons
+          </label>
+
+          <div class="actions">
+            <button type="submit" class="button button--primary">Commencer</button>
+            <button id="testDataButton" type="button" class="button">Utiliser la liste test</button>
+          </div>
+        </form>
+      </section>
+
+      <section id="gameScreen" class="screen" aria-labelledby="gameTitle">
+        <header class="topbar">
+          <div>
+            <p class="eyebrow">Classement des temps</p>
+            <h2 id="gameTitle">Quelle boîte choisir ?</h2>
+          </div>
+          <div class="stats" aria-label="Statistiques">
+            <span>Score <strong id="score">0</strong></span>
+            <span>Correctes <strong id="correctCount">0</strong></span>
+            <span>Erreurs <strong id="errorCount">0</strong></span>
+            <span>Série <strong id="streakCount">0</strong></span>
+            <span id="progressStat">0 / 30</span>
+          </div>
+        </header>
+
+        <section class="game-layout">
+          <aside id="hintPanel" class="hint-panel" aria-label="Rappel des terminaisons">
+            <h3>Rappel rapide</h3>
+            <p><strong>Imparfait</strong> : -ais, -ait, -ions, -iez, -aient</p>
+            <p><strong>Futur</strong> : -rai, -ras, -ra, -rons, -rez, -ront</p>
+            <p><strong>Passé simple</strong> : -ai, -as, -a, -âmes, -âtes, -èrent</p>
+          </aside>
+
+          <div class="play-area">
+            <div id="feedback" class="feedback" role="status" aria-live="polite"></div>
+            <div id="playfield" tabindex="0" aria-label="Zone de jeu. Utilise les flèches gauche et droite.">
+              <div class="lane-guide" aria-hidden="true"></div>
+              <div id="fallingWord" class="falling-word" hidden></div>
+              <div id="bins" class="bins" aria-label="Boîtes de réponse">
+                <button class="bin" type="button" data-tense="imparfait">
+                  <span>imparfait</span>
+                </button>
+                <button class="bin" type="button" data-tense="futur">
+                  <span>futur</span>
+                </button>
+                <button class="bin" type="button" data-tense="passe_simple">
+                  <span>passé simple</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <footer class="game-footer">
+          <p>Touches : flèche gauche, flèche droite. La réponse est validée quand la forme arrive en bas.</p>
+          <button id="restartButton" type="button" class="button">Rejouer</button>
+          <button id="homeButton" type="button" class="button button--quiet">Accueil</button>
+        </footer>
+      </section>
+
+      <section id="endScreen" class="screen" aria-labelledby="endTitle">
+        <div class="end-panel">
+          <p class="eyebrow">Bilan</p>
+          <h2 id="endTitle">Partie terminée</h2>
+          <div id="finalSummary" class="final-summary"></div>
+          <div id="tenseBreakdown" class="breakdown"></div>
+          <div class="actions">
+            <button id="playAgainButton" type="button" class="button button--primary">Rejouer</button>
+            <button id="backToHomeButton" type="button" class="button">Changer les réglages</button>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script src="script.js"></script>
+  </body>
+</html>
