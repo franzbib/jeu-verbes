@@ -4,39 +4,46 @@ const TENSES = {
     color: "#0f8b8d",
     hint: "-ais, -ait, -ions, -iez, -aient",
     errorHint: "terminaisons en -ais, -ait, -ions...",
+    errorLabel: "c'était de l'imparfait",
   },
   futur: {
     label: "futur",
     color: "#2867c8",
     hint: "-rai, -ras, -ra, -rons, -rez, -ront",
     errorHint: "base du futur + terminaison",
+    errorLabel: "c'était du futur",
   },
   passe_simple: {
     label: "passé simple",
     color: "#7557b8",
     hint: "-ai, -as, -a, -âmes, -âtes, -èrent",
     errorHint: "formes brèves ou littéraires",
+    errorLabel: "c'était du passé simple",
   },
   conditionnel_present: {
     label: "conditionnel présent",
     color: "#c95f36",
     hint: "-rais, -rait, -rions, -riez, -raient",
     errorHint: "base du futur + terminaisons de l'imparfait",
+    errorLabel: "c'était du conditionnel présent",
   },
   passe_compose: {
     label: "passé composé",
     color: "#1f9d68",
     hint: "auxiliaire + participe passé",
     errorHint: "auxiliaire + participe passé",
+    errorLabel: "c'était du passé composé",
   },
 };
 
 const TENSE_ORDER = ["imparfait", "futur", "passe_simple", "conditionnel_present", "passe_compose"];
 const INITIAL_TENSES = TENSE_ORDER.slice(0, 3);
+const DEFAULT_CONTENT_MODE = "tenses";
+const CONTENT_MODE_ORDER = ["tenses", "grammar", "lexical", "tools"];
 
 // Réglages faciles à modifier pour ajuster la durée, la difficulté et les sensations.
 const GAME_RULES = {
-  enableProgressiveTenseUnlocks: true,
+  enableProgressiveBucketUnlocks: true,
   wordsPerGame: 30,
   spawnY: -168,
   spawnDelayMs: 520,
@@ -60,7 +67,6 @@ const DIFFICULTIES = {
     speedIncrease: 2.25,
     maxSpeed: 172,
     allowedLevels: ["easy"],
-    unlocks: { conditionnel_present: 8, passe_compose: 18 },
   },
   medium: {
     label: "moyen",
@@ -68,7 +74,6 @@ const DIFFICULTIES = {
     speedIncrease: 3.2,
     maxSpeed: 220,
     allowedLevels: ["easy", "medium"],
-    unlocks: { conditionnel_present: 6, passe_compose: 14 },
   },
   hard: {
     label: "difficile",
@@ -76,7 +81,6 @@ const DIFFICULTIES = {
     speedIncrease: 4.35,
     maxSpeed: 274,
     allowedLevels: ["easy", "medium", "hard"],
-    unlocks: { conditionnel_present: 5, passe_compose: 12 },
   },
 };
 
@@ -347,10 +351,371 @@ const GAME_FORMS = [
   { text: "vous avez vendu", tense: "passe_compose", verb: "vendre", person: "vous", level: "easy", irregular: false },
 ];
 
+const GRAMMAR_BUCKETS = {
+  nom: {
+    label: "nom",
+    color: "#0f8b8d",
+    hint: "personne, lieu, objet ou idée",
+    errorHint: "on peut souvent mettre un déterminant devant",
+    errorLabel: "c'était un nom",
+  },
+  verbe: {
+    label: "verbe",
+    color: "#2867c8",
+    hint: "action ou état",
+    errorHint: "il se conjugue avec un sujet",
+    errorLabel: "c'était un verbe",
+  },
+  adjectif: {
+    label: "adjectif",
+    color: "#c95f36",
+    hint: "précise un nom",
+    errorHint: "il décrit une qualité",
+    errorLabel: "c'était un adjectif",
+  },
+  adverbe: {
+    label: "adverbe",
+    color: "#1f9d68",
+    hint: "précise un verbe ou une phrase",
+    errorHint: "il indique souvent comment, où ou quand",
+    errorLabel: "c'était un adverbe",
+  },
+  pronom: {
+    label: "pronom",
+    color: "#7557b8",
+    hint: "remplace un nom ou un groupe nominal",
+    errorHint: "il évite de répéter un nom",
+    errorLabel: "c'était un pronom",
+  },
+};
+
+const GRAMMAR_ORDER = ["nom", "verbe", "adjectif", "adverbe", "pronom"];
+
+const GRAMMAR_ITEMS = [
+  { text: "table", answer: "nom", level: "easy", tags: ["objet"], hint: "un objet" },
+  { text: "voiture", answer: "nom", level: "easy", tags: ["objet"], hint: "un objet" },
+  { text: "étudiant", answer: "nom", level: "easy", tags: ["personne"], hint: "une personne" },
+  { text: "livre", answer: "nom", level: "easy", tags: ["objet"], hint: "un objet" },
+  { text: "maison", answer: "nom", level: "easy", tags: ["lieu"], hint: "un lieu" },
+  { text: "école", answer: "nom", level: "easy", tags: ["lieu"], hint: "un lieu" },
+  { text: "jardin", answer: "nom", level: "easy", tags: ["lieu"], hint: "un lieu" },
+  { text: "chaise", answer: "nom", level: "easy", tags: ["objet"], hint: "un objet" },
+  { text: "fenêtre", answer: "nom", level: "medium", tags: ["objet"], hint: "un objet" },
+  { text: "ordinateur", answer: "nom", level: "medium", tags: ["objet"], hint: "un objet" },
+  { text: "dormir", answer: "verbe", level: "easy", tags: ["infinitif"], hint: "une action" },
+  { text: "courir", answer: "verbe", level: "easy", tags: ["infinitif"], hint: "une action" },
+  { text: "écrire", answer: "verbe", level: "easy", tags: ["infinitif"], hint: "une action" },
+  { text: "chanter", answer: "verbe", level: "easy", tags: ["infinitif"], hint: "une action" },
+  { text: "manger", answer: "verbe", level: "easy", tags: ["infinitif"], hint: "une action" },
+  { text: "parler", answer: "verbe", level: "easy", tags: ["infinitif"], hint: "une action" },
+  { text: "lire", answer: "verbe", level: "easy", tags: ["infinitif"], hint: "une action" },
+  { text: "voyager", answer: "verbe", level: "medium", tags: ["infinitif"], hint: "une action" },
+  { text: "attendre", answer: "verbe", level: "medium", tags: ["infinitif"], hint: "une action" },
+  { text: "choisir", answer: "verbe", level: "medium", tags: ["infinitif"], hint: "une action" },
+  { text: "grand", answer: "adjectif", level: "easy", tags: ["qualité"], hint: "une qualité" },
+  { text: "utile", answer: "adjectif", level: "easy", tags: ["qualité"], hint: "une qualité" },
+  { text: "rapide", answer: "adjectif", level: "easy", tags: ["qualité"], hint: "une qualité" },
+  { text: "joli", answer: "adjectif", level: "easy", tags: ["qualité"], hint: "une qualité" },
+  { text: "bleu", answer: "adjectif", level: "easy", tags: ["couleur"], hint: "une qualité" },
+  { text: "chaud", answer: "adjectif", level: "easy", tags: ["qualité"], hint: "une qualité" },
+  { text: "propre", answer: "adjectif", level: "easy", tags: ["qualité"], hint: "une qualité" },
+  { text: "difficile", answer: "adjectif", level: "medium", tags: ["qualité"], hint: "une qualité" },
+  { text: "simple", answer: "adjectif", level: "medium", tags: ["qualité"], hint: "une qualité" },
+  { text: "ancien", answer: "adjectif", level: "medium", tags: ["qualité"], hint: "une qualité" },
+  { text: "vite", answer: "adverbe", level: "easy", tags: ["manière"], hint: "comment ?" },
+  { text: "souvent", answer: "adverbe", level: "easy", tags: ["fréquence"], hint: "combien de fois ?" },
+  { text: "demain", answer: "adverbe", level: "easy", tags: ["temps"], hint: "quand ?" },
+  { text: "ici", answer: "adverbe", level: "easy", tags: ["lieu"], hint: "où ?" },
+  { text: "dehors", answer: "adverbe", level: "easy", tags: ["lieu"], hint: "où ?" },
+  { text: "bientôt", answer: "adverbe", level: "medium", tags: ["temps"], hint: "quand ?" },
+  { text: "toujours", answer: "adverbe", level: "medium", tags: ["fréquence"], hint: "combien de fois ?" },
+  { text: "lentement", answer: "adverbe", level: "medium", tags: ["manière"], hint: "comment ?" },
+  { text: "maintenant", answer: "adverbe", level: "medium", tags: ["temps"], hint: "quand ?" },
+  { text: "ailleurs", answer: "adverbe", level: "hard", tags: ["lieu"], hint: "où ?" },
+  { text: "elle", answer: "pronom", level: "easy", tags: ["personnel"], hint: "remplace un nom" },
+  { text: "nous", answer: "pronom", level: "easy", tags: ["personnel"], hint: "remplace un nom" },
+  { text: "ceci", answer: "pronom", level: "medium", tags: ["démonstratif"], hint: "remplace une chose" },
+  { text: "chacun", answer: "pronom", level: "medium", tags: ["indéfini"], hint: "remplace une personne" },
+  { text: "celui-ci", answer: "pronom", level: "medium", tags: ["démonstratif"], hint: "remplace un nom" },
+  { text: "elles", answer: "pronom", level: "easy", tags: ["personnel"], hint: "remplace un nom" },
+  { text: "vous", answer: "pronom", level: "easy", tags: ["personnel"], hint: "remplace un nom" },
+  { text: "moi", answer: "pronom", level: "easy", tags: ["personnel"], hint: "remplace une personne" },
+  { text: "quelqu'un", answer: "pronom", level: "medium", tags: ["indéfini"], hint: "remplace une personne" },
+  { text: "lequel", answer: "pronom", level: "hard", tags: ["interrogatif"], hint: "remplace un nom" },
+];
+
+const LEXICAL_BUCKETS = {
+  alimentation: {
+    label: "alimentation",
+    color: "#1f9d68",
+    hint: "manger, boire, cuisiner",
+    errorHint: "mot lié aux repas",
+    errorLabel: "champ lexical de l'alimentation",
+  },
+  transports: {
+    label: "transports",
+    color: "#2867c8",
+    hint: "se déplacer",
+    errorHint: "mot lié aux déplacements",
+    errorLabel: "champ lexical des transports",
+  },
+  etudes: {
+    label: "études",
+    color: "#7557b8",
+    hint: "apprendre, lire, passer un examen",
+    errorHint: "mot lié à l'école ou l'université",
+    errorLabel: "champ lexical des études",
+  },
+  logement: {
+    label: "logement",
+    color: "#0f8b8d",
+    hint: "pièces, meubles, habitation",
+    errorHint: "mot lié à la maison",
+    errorLabel: "champ lexical du logement",
+  },
+  travail: {
+    label: "travail",
+    color: "#c95f36",
+    hint: "emploi, bureau, collègues",
+    errorHint: "mot lié à la vie professionnelle",
+    errorLabel: "champ lexical du travail",
+  },
+};
+
+const LEXICAL_ORDER = ["alimentation", "transports", "etudes", "logement", "travail"];
+
+const LEXICAL_ITEMS = [
+  { text: "pain", answer: "alimentation", level: "easy", tags: ["aliment"], hint: "à manger" },
+  { text: "pomme", answer: "alimentation", level: "easy", tags: ["fruit"], hint: "à manger" },
+  { text: "salade", answer: "alimentation", level: "easy", tags: ["aliment"], hint: "à manger" },
+  { text: "fourchette", answer: "alimentation", level: "easy", tags: ["ustensile"], hint: "pour manger" },
+  { text: "fromage", answer: "alimentation", level: "easy", tags: ["aliment"], hint: "à manger" },
+  { text: "eau", answer: "alimentation", level: "easy", tags: ["boisson"], hint: "à boire" },
+  { text: "restaurant", answer: "alimentation", level: "medium", tags: ["lieu"], hint: "où l'on mange" },
+  { text: "assiette", answer: "alimentation", level: "medium", tags: ["objet"], hint: "pour manger" },
+  { text: "casserole", answer: "alimentation", level: "medium", tags: ["objet"], hint: "pour cuisiner" },
+  { text: "recette", answer: "alimentation", level: "hard", tags: ["cuisine"], hint: "pour préparer un plat" },
+  { text: "bus", answer: "transports", level: "easy", tags: ["véhicule"], hint: "pour se déplacer" },
+  { text: "gare", answer: "transports", level: "easy", tags: ["lieu"], hint: "lieu de départ" },
+  { text: "train", answer: "transports", level: "easy", tags: ["véhicule"], hint: "pour voyager" },
+  { text: "vélo", answer: "transports", level: "easy", tags: ["véhicule"], hint: "pour se déplacer" },
+  { text: "métro", answer: "transports", level: "easy", tags: ["véhicule"], hint: "en ville" },
+  { text: "billet", answer: "transports", level: "medium", tags: ["document"], hint: "pour voyager" },
+  { text: "aéroport", answer: "transports", level: "medium", tags: ["lieu"], hint: "pour prendre l'avion" },
+  { text: "tramway", answer: "transports", level: "medium", tags: ["véhicule"], hint: "transport urbain" },
+  { text: "parking", answer: "transports", level: "medium", tags: ["lieu"], hint: "pour garer une voiture" },
+  { text: "passager", answer: "transports", level: "hard", tags: ["personne"], hint: "personne qui voyage" },
+  { text: "professeur", answer: "etudes", level: "easy", tags: ["personne"], hint: "à l'école" },
+  { text: "cahier", answer: "etudes", level: "easy", tags: ["objet"], hint: "pour écrire" },
+  { text: "examen", answer: "etudes", level: "easy", tags: ["évaluation"], hint: "à réussir" },
+  { text: "bibliothèque", answer: "etudes", level: "easy", tags: ["lieu"], hint: "pour lire ou étudier" },
+  { text: "leçon", answer: "etudes", level: "easy", tags: ["cours"], hint: "à apprendre" },
+  { text: "diplôme", answer: "etudes", level: "medium", tags: ["document"], hint: "après des études" },
+  { text: "classe", answer: "etudes", level: "medium", tags: ["lieu"], hint: "lieu d'apprentissage" },
+  { text: "devoir", answer: "etudes", level: "medium", tags: ["activité"], hint: "à faire pour apprendre" },
+  { text: "université", answer: "etudes", level: "medium", tags: ["lieu"], hint: "après le lycée" },
+  { text: "manuel", answer: "etudes", level: "hard", tags: ["objet"], hint: "livre de cours" },
+  { text: "chambre", answer: "logement", level: "easy", tags: ["pièce"], hint: "dans une maison" },
+  { text: "clé", answer: "logement", level: "easy", tags: ["objet"], hint: "pour ouvrir" },
+  { text: "canapé", answer: "logement", level: "easy", tags: ["meuble"], hint: "dans le salon" },
+  { text: "loyer", answer: "logement", level: "medium", tags: ["argent"], hint: "à payer chaque mois" },
+  { text: "douche", answer: "logement", level: "medium", tags: ["pièce"], hint: "dans la salle de bain" },
+  { text: "balcon", answer: "logement", level: "medium", tags: ["espace"], hint: "à l'extérieur du logement" },
+  { text: "placard", answer: "logement", level: "medium", tags: ["meuble"], hint: "pour ranger" },
+  { text: "immeuble", answer: "logement", level: "hard", tags: ["bâtiment"], hint: "plusieurs appartements" },
+  { text: "entretien", answer: "travail", level: "easy", tags: ["recrutement"], hint: "avant un emploi" },
+  { text: "bureau", answer: "travail", level: "easy", tags: ["lieu"], hint: "où l'on travaille" },
+  { text: "salaire", answer: "travail", level: "easy", tags: ["argent"], hint: "argent du travail" },
+  { text: "collègue", answer: "travail", level: "easy", tags: ["personne"], hint: "personne au travail" },
+  { text: "réunion", answer: "travail", level: "medium", tags: ["activité"], hint: "moment professionnel" },
+  { text: "contrat", answer: "travail", level: "medium", tags: ["document"], hint: "document d'emploi" },
+  { text: "poste", answer: "travail", level: "medium", tags: ["emploi"], hint: "emploi occupé" },
+  { text: "entreprise", answer: "travail", level: "medium", tags: ["lieu"], hint: "lieu professionnel" },
+];
+
+const TOOL_BUCKETS = {
+  articles: {
+    label: "articles",
+    color: "#0f8b8d",
+    hint: "le, la, un, une...",
+    errorHint: "ils introduisent un nom",
+    errorLabel: "article",
+  },
+  prepositions: {
+    label: "prépositions",
+    color: "#2867c8",
+    hint: "dans, sur, avec...",
+    errorHint: "elles relient un mot à un complément",
+    errorLabel: "préposition",
+  },
+  conjonctions: {
+    label: "conjonctions",
+    color: "#c95f36",
+    hint: "mais, ou, et, donc, car",
+    errorHint: "elles relient deux mots ou deux idées",
+    errorLabel: "conjonction",
+  },
+  pronoms_relatifs: {
+    label: "pronoms relatifs",
+    color: "#1f9d68",
+    hint: "qui, que, où, dont",
+    errorHint: "ils introduisent une proposition relative",
+    errorLabel: "pronom relatif",
+  },
+  connecteurs: {
+    label: "connecteurs",
+    color: "#7557b8",
+    hint: "ensuite, pourtant, enfin...",
+    errorHint: "ils organisent le discours",
+    errorLabel: "connecteur logique",
+  },
+};
+
+const TOOL_ORDER = ["articles", "prepositions", "conjonctions", "pronoms_relatifs", "connecteurs"];
+
+const TOOL_ITEMS = [
+  { text: "le", answer: "articles", level: "easy", tags: ["défini"], hint: "introduit un nom" },
+  { text: "la", answer: "articles", level: "easy", tags: ["défini"], hint: "introduit un nom" },
+  { text: "les", answer: "articles", level: "easy", tags: ["défini"], hint: "introduit un nom" },
+  { text: "un", answer: "articles", level: "easy", tags: ["indéfini"], hint: "introduit un nom" },
+  { text: "une", answer: "articles", level: "easy", tags: ["indéfini"], hint: "introduit un nom" },
+  { text: "des", answer: "articles", level: "easy", tags: ["indéfini"], hint: "introduit un nom" },
+  { text: "du", answer: "articles", level: "medium", tags: ["partitif"], hint: "introduit un nom" },
+  { text: "de la", answer: "articles", level: "medium", tags: ["partitif"], hint: "introduit un nom" },
+  { text: "dans", answer: "prepositions", level: "easy", tags: ["lieu"], hint: "introduit un complément" },
+  { text: "sur", answer: "prepositions", level: "easy", tags: ["lieu"], hint: "introduit un complément" },
+  { text: "avec", answer: "prepositions", level: "easy", tags: ["accompagnement"], hint: "introduit un complément" },
+  { text: "sans", answer: "prepositions", level: "easy", tags: ["manque"], hint: "introduit un complément" },
+  { text: "chez", answer: "prepositions", level: "easy", tags: ["lieu"], hint: "introduit un complément" },
+  { text: "pour", answer: "prepositions", level: "medium", tags: ["but"], hint: "introduit un complément" },
+  { text: "depuis", answer: "prepositions", level: "medium", tags: ["temps"], hint: "introduit un complément" },
+  { text: "près de", answer: "prepositions", level: "medium", tags: ["lieu"], hint: "introduit un complément" },
+  { text: "mais", answer: "conjonctions", level: "easy", tags: ["opposition"], hint: "relie deux idées" },
+  { text: "ou", answer: "conjonctions", level: "easy", tags: ["choix"], hint: "relie deux idées" },
+  { text: "et", answer: "conjonctions", level: "easy", tags: ["addition"], hint: "relie deux idées" },
+  { text: "donc", answer: "conjonctions", level: "easy", tags: ["conséquence"], hint: "relie deux idées" },
+  { text: "car", answer: "conjonctions", level: "easy", tags: ["cause"], hint: "relie deux idées" },
+  { text: "lorsque", answer: "conjonctions", level: "medium", tags: ["temps"], hint: "introduit une proposition" },
+  { text: "puisque", answer: "conjonctions", level: "medium", tags: ["cause"], hint: "introduit une proposition" },
+  { text: "quoique", answer: "conjonctions", level: "hard", tags: ["concession"], hint: "introduit une proposition" },
+  { text: "qui", answer: "pronoms_relatifs", level: "easy", tags: ["relatif"], hint: "introduit une relative" },
+  { text: "que", answer: "pronoms_relatifs", level: "easy", tags: ["relatif"], hint: "introduit une relative" },
+  { text: "ce qui", answer: "pronoms_relatifs", level: "easy", tags: ["relatif"], hint: "introduit une relative" },
+  { text: "ce que", answer: "pronoms_relatifs", level: "easy", tags: ["relatif"], hint: "introduit une relative" },
+  { text: "où", answer: "pronoms_relatifs", level: "medium", tags: ["relatif"], hint: "introduit une relative" },
+  { text: "dont", answer: "pronoms_relatifs", level: "medium", tags: ["relatif"], hint: "introduit une relative" },
+  { text: "lequel", answer: "pronoms_relatifs", level: "hard", tags: ["relatif"], hint: "introduit une relative" },
+  { text: "laquelle", answer: "pronoms_relatifs", level: "hard", tags: ["relatif"], hint: "introduit une relative" },
+  { text: "ensuite", answer: "connecteurs", level: "easy", tags: ["ordre"], hint: "organise le discours" },
+  { text: "puis", answer: "connecteurs", level: "easy", tags: ["ordre"], hint: "organise le discours" },
+  { text: "enfin", answer: "connecteurs", level: "easy", tags: ["ordre"], hint: "organise le discours" },
+  { text: "par exemple", answer: "connecteurs", level: "easy", tags: ["exemple"], hint: "organise le discours" },
+  { text: "pourtant", answer: "connecteurs", level: "medium", tags: ["opposition"], hint: "organise le discours" },
+  { text: "cependant", answer: "connecteurs", level: "medium", tags: ["opposition"], hint: "organise le discours" },
+  { text: "d'abord", answer: "connecteurs", level: "medium", tags: ["ordre"], hint: "organise le discours" },
+  { text: "en résumé", answer: "connecteurs", level: "medium", tags: ["synthèse"], hint: "organise le discours" },
+  { text: "par conséquent", answer: "connecteurs", level: "hard", tags: ["conséquence"], hint: "organise le discours" },
+];
+
+const GAME_MODES = {
+  tenses: {
+    id: "tenses",
+    label: "Temps verbaux",
+    description: "Classe des formes conjuguées selon leur temps. Le mode historique reste le plus complet.",
+    headerEyebrow: "Classement des temps",
+    headerTitle: "Quelle boîte choisir ?",
+    itemLabel: "forme verbale",
+    helpTitle: "Rappel des terminaisons",
+    buckets: TENSES,
+    bucketOrder: TENSE_ORDER,
+    initialBuckets: INITIAL_TENSES,
+    items: GAME_FORMS,
+    testItems: TEST_FORMS,
+    unlocks: {
+      easy: { conditionnel_present: 8, passe_compose: 18 },
+      medium: { conditionnel_present: 6, passe_compose: 14 },
+      hard: { conditionnel_present: 5, passe_compose: 12 },
+    },
+    bestLabel: "Temps le plus réussi",
+    hardestLabel: "Temps à retravailler",
+    emptyBestLabel: "à découvrir",
+    noProblemLabel: "aucun",
+    weightIrregulars: true,
+  },
+  grammar: {
+    id: "grammar",
+    label: "Catégories grammaticales",
+    description: "Trie des mots simples : nom, verbe, adjectif, puis adverbe et pronom.",
+    headerEyebrow: "Catégories grammaticales",
+    headerTitle: "Quelle nature grammaticale ?",
+    itemLabel: "mot",
+    helpTitle: "Mini-repères grammaticaux",
+    buckets: GRAMMAR_BUCKETS,
+    bucketOrder: GRAMMAR_ORDER,
+    initialBuckets: GRAMMAR_ORDER.slice(0, 3),
+    items: GRAMMAR_ITEMS,
+    unlocks: {
+      easy: { adverbe: 8, pronom: 18 },
+      medium: { adverbe: 6, pronom: 14 },
+      hard: { adverbe: 5, pronom: 12 },
+    },
+    bestLabel: "Catégorie la plus réussie",
+    hardestLabel: "Catégorie à retravailler",
+    emptyBestLabel: "à découvrir",
+    noProblemLabel: "aucune",
+  },
+  lexical: {
+    id: "lexical",
+    label: "Champs lexicaux",
+    description: "Classe des mots concrets par famille de vocabulaire utile en FLE.",
+    headerEyebrow: "Champs lexicaux",
+    headerTitle: "Dans quelle famille va ce mot ?",
+    itemLabel: "mot",
+    helpTitle: "Familles de vocabulaire",
+    buckets: LEXICAL_BUCKETS,
+    bucketOrder: LEXICAL_ORDER,
+    initialBuckets: LEXICAL_ORDER.slice(0, 3),
+    items: LEXICAL_ITEMS,
+    unlocks: {
+      easy: { logement: 8, travail: 18 },
+      medium: { logement: 6, travail: 14 },
+      hard: { logement: 5, travail: 12 },
+    },
+    bestLabel: "Champ le plus réussi",
+    hardestLabel: "Champ à retravailler",
+    emptyBestLabel: "à découvrir",
+    noProblemLabel: "aucun",
+  },
+  tools: {
+    id: "tools",
+    label: "Mots outils",
+    description: "Trie des petits mots par familles claires : articles, prépositions, conjonctions...",
+    headerEyebrow: "Mots outils",
+    headerTitle: "Quelle famille de mot outil ?",
+    itemLabel: "mot outil",
+    helpTitle: "Rôle des mots outils",
+    buckets: TOOL_BUCKETS,
+    bucketOrder: TOOL_ORDER,
+    initialBuckets: TOOL_ORDER.slice(0, 3),
+    items: TOOL_ITEMS,
+    unlocks: {
+      easy: { pronoms_relatifs: 8, connecteurs: 18 },
+      medium: { pronoms_relatifs: 6, connecteurs: 14 },
+      hard: { pronoms_relatifs: 5, connecteurs: 12 },
+    },
+    bestLabel: "Famille la plus réussie",
+    hardestLabel: "Famille à retravailler",
+    emptyBestLabel: "à découvrir",
+    noProblemLabel: "aucune",
+  },
+};
+
 const homeScreen = document.getElementById("homeScreen");
 const gameScreen = document.getElementById("gameScreen");
 const endScreen = document.getElementById("endScreen");
 const settingsForm = document.getElementById("settingsForm");
+const contentModeSelector = document.getElementById("contentModeSelector");
+const contentModeDescription = document.getElementById("contentModeDescription");
 const testDataButton = document.getElementById("testDataButton");
 const hintToggle = document.getElementById("hintToggle");
 const soundToggle = document.getElementById("soundToggle");
@@ -366,6 +731,8 @@ const restartButton = document.getElementById("restartButton");
 const homeButton = document.getElementById("homeButton");
 const playAgainButton = document.getElementById("playAgainButton");
 const backToHomeButton = document.getElementById("backToHomeButton");
+const gameEyebrow = document.getElementById("gameEyebrow");
+const gameTitle = document.getElementById("gameTitle");
 const scoreEl = document.getElementById("score");
 const correctEl = document.getElementById("correctCount");
 const errorEl = document.getElementById("errorCount");
@@ -380,9 +747,10 @@ let lanes = [];
 
 const state = {
   mode: "game",
+  contentMode: DEFAULT_CONTENT_MODE,
   difficulty: "easy",
   useTestData: false,
-  activeTenses: [...INITIAL_TENSES],
+  activeBuckets: [...GAME_MODES[DEFAULT_CONTENT_MODE].initialBuckets],
   unlockedDuringGame: 0,
   deck: [],
   current: null,
@@ -406,19 +774,19 @@ const state = {
   bestStreak: 0,
   answered: 0,
   soundEnabled: GAME_RULES.soundDefaultOn,
-  errorStacks: createTenseCounter(),
-  errorStackItems: createTenseStacks(),
-  attemptsByTense: createTenseCounter(),
-  correctByTense: createTenseCounter(),
-  errorsByTense: createTenseCounter(),
+  errorStacks: createBucketCounter(DEFAULT_CONTENT_MODE),
+  errorStackItems: createBucketStacks(DEFAULT_CONTENT_MODE),
+  attemptsByBucket: createBucketCounter(DEFAULT_CONTENT_MODE),
+  correctByBucket: createBucketCounter(DEFAULT_CONTENT_MODE),
+  errorsByBucket: createBucketCounter(DEFAULT_CONTENT_MODE),
 };
 
-function createTenseCounter() {
-  return Object.fromEntries(Object.keys(TENSES).map((tense) => [tense, 0]));
+function createBucketCounter(modeId = DEFAULT_CONTENT_MODE) {
+  return Object.fromEntries(getModeConfig(modeId).bucketOrder.map((bucket) => [bucket, 0]));
 }
 
-function createTenseStacks() {
-  return Object.fromEntries(Object.keys(TENSES).map((tense) => [tense, []]));
+function createBucketStacks(modeId = DEFAULT_CONTENT_MODE) {
+  return Object.fromEntries(getModeConfig(modeId).bucketOrder.map((bucket) => [bucket, []]));
 }
 
 function showScreen(screen) {
@@ -426,8 +794,68 @@ function showScreen(screen) {
   screen.classList.add("screen--active");
 }
 
+function renderContentModeSelector() {
+  const legend = contentModeSelector.querySelector("legend");
+  contentModeSelector.innerHTML = "";
+  contentModeSelector.appendChild(legend);
+
+  CONTENT_MODE_ORDER.forEach((modeId) => {
+    const mode = GAME_MODES[modeId];
+    const label = document.createElement("label");
+    label.className = "mode-card";
+
+    const input = document.createElement("input");
+    input.type = "radio";
+    input.name = "contentMode";
+    input.value = mode.id;
+    input.checked = mode.id === DEFAULT_CONTENT_MODE;
+    input.addEventListener("change", updateContentModeDescription);
+    label.classList.toggle("is-selected", input.checked);
+
+    const text = document.createElement("span");
+    text.className = "mode-card__text";
+    const title = document.createElement("strong");
+    title.textContent = mode.label;
+    const description = document.createElement("small");
+    description.textContent = mode.description;
+    text.append(title, description);
+    label.append(input, text);
+    contentModeSelector.appendChild(label);
+  });
+}
+
+function updateContentModeDescription() {
+  const mode = GAME_MODES[getSelectedContentMode()] ?? GAME_MODES[DEFAULT_CONTENT_MODE];
+  contentModeDescription.textContent = mode.description;
+  testDataButton.hidden = mode.id !== DEFAULT_CONTENT_MODE;
+  contentModeSelector.querySelectorAll(".mode-card").forEach((card) => {
+    card.classList.toggle("is-selected", card.querySelector("input")?.checked);
+  });
+}
+
 function getSelectedValue(name) {
   return settingsForm.querySelector(`input[name="${name}"]:checked`).value;
+}
+
+function getSelectedContentMode() {
+  return settingsForm.querySelector('input[name="contentMode"]:checked')?.value ?? DEFAULT_CONTENT_MODE;
+}
+
+function getModeConfig(modeId = state.contentMode) {
+  return GAME_MODES[modeId] ?? GAME_MODES[DEFAULT_CONTENT_MODE];
+}
+
+function getBucketInfo(bucketId) {
+  const mode = getModeConfig();
+  return mode.buckets[bucketId] ?? GAME_MODES[DEFAULT_CONTENT_MODE].buckets[bucketId];
+}
+
+function getBucketOrder() {
+  return getModeConfig().bucketOrder;
+}
+
+function getItemBucket(item) {
+  return item.answer ?? item.correctBucket ?? item.tense;
 }
 
 function shuffle(items) {
@@ -439,28 +867,29 @@ function shuffle(items) {
   return copy;
 }
 
-function getInitialActiveTenses() {
-  if (!GAME_RULES.enableProgressiveTenseUnlocks) {
-    return [...TENSE_ORDER];
+function getInitialActiveBuckets() {
+  const mode = getModeConfig();
+  if (!GAME_RULES.enableProgressiveBucketUnlocks) {
+    return [...mode.bucketOrder];
   }
 
-  return [...INITIAL_TENSES];
+  return [...mode.initialBuckets];
 }
 
-function renderLanesAndBins(highlightedTense = "") {
-  playfield.style.setProperty("--lane-count", state.activeTenses.length);
+function renderLanesAndBins(highlightedBucket = "") {
+  playfield.style.setProperty("--lane-count", state.activeBuckets.length);
   playfield.style.setProperty("--error-brick-height", `${GAME_RULES.errorBrickHeight}px`);
-  laneGrid.style.setProperty("--lane-count", state.activeTenses.length);
-  binsContainer.style.setProperty("--lane-count", state.activeTenses.length);
+  laneGrid.style.setProperty("--lane-count", state.activeBuckets.length);
+  binsContainer.style.setProperty("--lane-count", state.activeBuckets.length);
   laneGrid.innerHTML = "";
   binsContainer.innerHTML = "";
 
-  state.activeTenses.forEach((tense, index) => {
-    const info = TENSES[tense];
+  state.activeBuckets.forEach((bucket, index) => {
+    const info = getBucketInfo(bucket);
     const lane = document.createElement("div");
-    lane.className = `lane${tense === highlightedTense ? " lane--new" : ""}`;
+    lane.className = `lane${bucket === highlightedBucket ? " lane--new" : ""}`;
     lane.dataset.laneLabel = info.label;
-    lane.style.setProperty("--tense-color", info.color);
+    lane.style.setProperty("--bucket-color", info.color);
 
     const stack = document.createElement("div");
     stack.className = "error-stack";
@@ -468,10 +897,10 @@ function renderLanesAndBins(highlightedTense = "") {
     laneGrid.appendChild(lane);
 
     const button = document.createElement("button");
-    button.className = `bin${tense === highlightedTense ? " bin--new" : ""}`;
+    button.className = `bin${bucket === highlightedBucket ? " bin--new" : ""}`;
     button.type = "button";
-    button.dataset.tense = tense;
-    button.style.setProperty("--tense-color", info.color);
+    button.dataset.bucket = bucket;
+    button.style.setProperty("--bucket-color", info.color);
     button.addEventListener("click", () => setLane(index));
 
     const label = document.createElement("span");
@@ -489,14 +918,15 @@ function renderLanesAndBins(highlightedTense = "") {
 }
 
 function renderHints() {
+  const mode = getModeConfig();
   hintPanel.innerHTML = "";
 
   const summary = document.createElement("summary");
-  summary.textContent = "Rappel des terminaisons";
+  summary.textContent = mode.helpTitle;
   hintPanel.appendChild(summary);
 
-  state.activeTenses.forEach((tense) => {
-    const info = TENSES[tense];
+  state.activeBuckets.forEach((bucket) => {
+    const info = getBucketInfo(bucket);
     const line = document.createElement("p");
     const strong = document.createElement("strong");
     strong.textContent = info.label;
@@ -506,12 +936,12 @@ function renderHints() {
 }
 
 function renderErrorStacks() {
-  state.activeTenses.forEach((tense, index) => {
+  state.activeBuckets.forEach((bucket, index) => {
     const lane = lanes[index];
     const stack = lane?.querySelector(".error-stack");
     if (!lane || !stack) return;
 
-    const items = state.errorStackItems[tense] ?? [];
+    const items = state.errorStackItems[bucket] ?? [];
     const count = items.length;
     stack.innerHTML = "";
     lane.classList.toggle("lane--danger", count >= GAME_RULES.maxErrorBricksPerLane - 2);
@@ -522,7 +952,7 @@ function renderErrorStacks() {
       const brick = document.createElement("div");
       brick.className = "error-brick";
       brick.textContent = item.text;
-      brick.title = `${item.text} : ${TENSES[item.expected].label}`;
+      brick.title = `${item.text} : ${getBucketInfo(item.expected).label}`;
       stack.appendChild(brick);
     });
   });
@@ -530,29 +960,30 @@ function renderErrorStacks() {
 
 function setLane(index) {
   if (!state.current || state.isResolving) return;
-  state.laneIndex = Math.max(0, Math.min(state.activeTenses.length - 1, index));
+  state.laneIndex = Math.max(0, Math.min(state.activeBuckets.length - 1, index));
   state.targetX = getLaneCenter(state.laneIndex);
   updateLaneHighlights();
 }
 
-function unlockNextTenseIfReady() {
-  if (!GAME_RULES.enableProgressiveTenseUnlocks) return false;
+function unlockNextBucketIfReady() {
+  if (!GAME_RULES.enableProgressiveBucketUnlocks) return false;
 
-  const unlocks = DIFFICULTIES[state.difficulty].unlocks;
-  const nextTense = TENSE_ORDER.find((tense) => {
-    return !state.activeTenses.includes(tense) && unlocks[tense] && state.correct >= unlocks[tense];
+  const mode = getModeConfig();
+  const unlocks = mode.unlocks?.[state.difficulty] ?? {};
+  const nextBucket = mode.bucketOrder.find((bucket) => {
+    return !state.activeBuckets.includes(bucket) && unlocks[bucket] && state.correct >= unlocks[bucket];
   });
 
-  if (!nextTense) return false;
+  if (!nextBucket) return false;
 
-  state.activeTenses = TENSE_ORDER.filter((tense) => {
-    return state.activeTenses.includes(tense) || tense === nextTense;
+  state.activeBuckets = mode.bucketOrder.filter((bucket) => {
+    return state.activeBuckets.includes(bucket) || bucket === nextBucket;
   });
   state.unlockedDuringGame += 1;
   state.deck = [];
-  renderLanesAndBins(nextTense);
+  renderLanesAndBins(nextBucket);
   renderHints();
-  showUnlockBanner(`Nouveau tiroir débloqué : ${TENSES[nextTense].label}`);
+  showUnlockBanner(`Nouveau tiroir débloqué : ${getBucketInfo(nextBucket).label}`);
   playSound("unlock");
   return true;
 }
@@ -622,22 +1053,23 @@ function playSound(type) {
   });
 }
 
-function getAvailableForms() {
-  const isActiveForm = (item) => state.activeTenses.includes(item.tense);
+function getAvailableItems() {
+  const mode = getModeConfig();
+  const isActiveItem = (item) => state.activeBuckets.includes(getItemBucket(item));
 
   if (state.useTestData) {
-    return TEST_FORMS.filter(isActiveForm);
+    return (mode.testItems ?? mode.items).filter(isActiveItem);
   }
 
   const allowed = DIFFICULTIES[state.difficulty].allowedLevels;
-  const pool = GAME_FORMS.filter((item) => allowed.includes(item.level) && isActiveForm(item));
+  const pool = mode.items.filter((item) => allowed.includes(item.level) && isActiveItem(item));
 
-  if (state.difficulty === "hard") {
+  if (mode.weightIrregulars && state.difficulty === "hard") {
     const irregulars = pool.filter((item) => item.irregular);
     return shuffle([...pool, ...irregulars.slice(0, 28)]);
   }
 
-  if (state.difficulty === "medium" && state.correct >= 12) {
+  if (mode.weightIrregulars && state.difficulty === "medium" && state.correct >= 12) {
     const irregulars = pool.filter((item) => item.irregular);
     return shuffle([...pool, ...irregulars.slice(0, 12)]);
   }
@@ -647,15 +1079,15 @@ function getAvailableForms() {
 
 function refillDeckIfNeeded() {
   if (state.deck.length > 0) return;
-  state.deck = shuffle(getAvailableForms());
+  state.deck = shuffle(getAvailableItems());
 }
 
 function resetStats() {
-  state.activeTenses = getInitialActiveTenses();
+  state.activeBuckets = getInitialActiveBuckets();
   state.unlockedDuringGame = 0;
   state.deck = [];
   state.current = null;
-  state.laneIndex = Math.floor(state.activeTenses.length / 2);
+  state.laneIndex = Math.floor(state.activeBuckets.length / 2);
   state.currentX = 0;
   state.targetX = 0;
   state.y = 0;
@@ -673,11 +1105,11 @@ function resetStats() {
   state.streak = 0;
   state.bestStreak = 0;
   state.answered = 0;
-  state.errorStacks = createTenseCounter();
-  state.errorStackItems = createTenseStacks();
-  state.attemptsByTense = createTenseCounter();
-  state.correctByTense = createTenseCounter();
-  state.errorsByTense = createTenseCounter();
+  state.errorStacks = createBucketCounter(state.contentMode);
+  state.errorStackItems = createBucketStacks(state.contentMode);
+  state.attemptsByBucket = createBucketCounter(state.contentMode);
+  state.correctByBucket = createBucketCounter(state.contentMode);
+  state.errorsByBucket = createBucketCounter(state.contentMode);
 }
 
 function updateStats() {
@@ -728,11 +1160,12 @@ function startGame({ useTestData = false } = {}) {
   window.clearTimeout(state.unlockTimer);
   window.clearTimeout(state.feedbackTimer);
   state.mode = getSelectedValue("mode");
+  state.contentMode = getSelectedContentMode();
   state.difficulty = getSelectedValue("difficulty");
   state.useTestData = useTestData;
   state.soundEnabled = soundToggle.checked;
   resetStats();
-  state.deck = shuffle(getAvailableForms());
+  state.deck = shuffle(getAvailableItems());
   fallingWord.hidden = true;
   hintPanel.hidden = !hintToggle.checked;
   hintPanel.open = hintToggle.checked;
@@ -743,6 +1176,8 @@ function startGame({ useTestData = false } = {}) {
   clearLaneHighlights();
   unlockBanner.className = "unlock-banner";
   unlockBanner.textContent = "";
+  gameEyebrow.textContent = getModeConfig().headerEyebrow;
+  gameTitle.textContent = getModeConfig().headerTitle;
   showScreen(gameScreen);
   primeAudio();
   playfield.focus();
@@ -763,7 +1198,7 @@ function spawnWord() {
 
   state.current = state.deck.shift();
   state.isResolving = false;
-  state.laneIndex = Math.floor(state.activeTenses.length / 2);
+  state.laneIndex = Math.floor(state.activeBuckets.length / 2);
   state.targetX = getLaneCenter(state.laneIndex);
   state.currentX = state.targetX;
   state.y = GAME_RULES.spawnY;
@@ -810,8 +1245,8 @@ function moveWord(direction) {
   setLane(state.laneIndex + direction);
 }
 
-function getChosenTense() {
-  return bins[state.laneIndex]?.dataset.tense ?? state.activeTenses[0];
+function getChosenBucket() {
+  return bins[state.laneIndex]?.dataset.bucket ?? state.activeBuckets[0];
 }
 
 function resolveAnswer() {
@@ -820,21 +1255,22 @@ function resolveAnswer() {
   state.isResolving = true;
   cancelAnimationFrame(state.animationId);
 
-  const expected = state.current.tense;
-  const chosen = getChosenTense();
+  const expected = getItemBucket(state.current);
+  const chosen = getChosenBucket();
   const isCorrect = chosen === expected;
-  const expectedLabel = TENSES[expected].label;
-  const chosenBin = bins.find((bin) => bin.dataset.tense === chosen);
-  const expectedBin = bins.find((bin) => bin.dataset.tense === expected);
+  const expectedInfo = getBucketInfo(expected);
+  const expectedLabel = expectedInfo.label;
+  const chosenBin = bins.find((bin) => bin.dataset.bucket === chosen);
+  const expectedBin = bins.find((bin) => bin.dataset.bucket === expected);
 
   state.answered += 1;
-  state.attemptsByTense[expected] += 1;
+  state.attemptsByBucket[expected] += 1;
 
   if (isCorrect) {
     state.correct += 1;
     state.streak += 1;
     state.bestStreak = Math.max(state.bestStreak, state.streak);
-    state.correctByTense[expected] += 1;
+    state.correctByBucket[expected] += 1;
     state.score += GAME_RULES.correctBaseScore + Math.min(state.streak * GAME_RULES.comboBonusStep, GAME_RULES.comboBonusCap);
     fallingWord.classList.add("correct");
     chosenBin?.classList.remove("bin--active");
@@ -845,13 +1281,13 @@ function resolveAnswer() {
     state.errors += 1;
     state.streak = 0;
     state.score = Math.max(0, state.score - GAME_RULES.errorPenalty);
-    state.errorsByTense[expected] += 1;
+    state.errorsByBucket[expected] += 1;
     fallingWord.classList.add("wrong");
     chosenBin?.classList.remove("bin--active");
     chosenBin?.classList.add("bin--error");
     expectedBin?.classList.add("bin--target");
     addErrorBrick(chosen, state.current);
-    showFeedback(`Erreur : c'était du ${expectedLabel}. ${TENSES[expected].errorHint}.`, false);
+    showFeedback(formatErrorFeedback(expected), false);
     playSound("error");
   }
 
@@ -865,21 +1301,29 @@ function resolveAnswer() {
       finishGame();
     } else {
       state.current = null;
-      unlockNextTenseIfReady();
+      unlockNextBucketIfReady();
       state.spawnTimer = window.setTimeout(spawnWord, GAME_RULES.spawnDelayMs);
     }
   }, GAME_RULES.feedbackDurationMs);
 }
 
-function addErrorBrick(chosenTense, form) {
-  state.errorStacks[chosenTense] += 1;
-  state.errorStackItems[chosenTense].push({
-    text: form.text,
-    expected: form.tense,
+function formatErrorFeedback(expectedBucket) {
+  const info = getBucketInfo(expectedBucket);
+  const hint = info.errorHint ? ` ${info.errorHint}.` : "";
+  return `Erreur : ${info.errorLabel ?? info.label}.${hint}`;
+}
+
+function addErrorBrick(chosenBucket, item) {
+  state.errorStacks[chosenBucket] = state.errorStacks[chosenBucket] ?? 0;
+  state.errorStackItems[chosenBucket] = state.errorStackItems[chosenBucket] ?? [];
+  state.errorStacks[chosenBucket] += 1;
+  state.errorStackItems[chosenBucket].push({
+    text: item.text,
+    expected: getItemBucket(item),
   });
 
-  if (state.errorStacks[chosenTense] >= GAME_RULES.maxErrorBricksPerLane) {
-    state.gameOverReason = `Débordement du tiroir ${TENSES[chosenTense].label}`;
+  if (state.errorStacks[chosenBucket] >= GAME_RULES.maxErrorBricksPerLane) {
+    state.gameOverReason = `Débordement du tiroir ${getBucketInfo(chosenBucket).label}`;
   }
 
   renderErrorStacks();
@@ -901,9 +1345,9 @@ function clearFeedback() {
 }
 
 function shouldEndGame() {
-  const overflowTense = state.activeTenses.find((tense) => state.errorStacks[tense] >= GAME_RULES.maxErrorBricksPerLane);
-  if (overflowTense) {
-    state.gameOverReason = `Débordement du tiroir ${TENSES[overflowTense].label}`;
+  const overflowBucket = state.activeBuckets.find((bucket) => state.errorStacks[bucket] >= GAME_RULES.maxErrorBricksPerLane);
+  if (overflowBucket) {
+    state.gameOverReason = `Débordement du tiroir ${getBucketInfo(overflowBucket).label}`;
     return true;
   }
 
@@ -931,22 +1375,24 @@ function finishGame() {
 }
 
 function renderFinalSummary() {
+  const mode = getModeConfig();
   const total = state.correct + state.errors;
   const successRate = total === 0 ? 0 : Math.round((state.correct / total) * 100);
-  const playedTenses = TENSE_ORDER.filter((tense) => state.attemptsByTense[tense] > 0);
-  const rankedBySuccess = [...playedTenses].sort((a, b) => {
-    const rateA = state.correctByTense[a] / state.attemptsByTense[a];
-    const rateB = state.correctByTense[b] / state.attemptsByTense[b];
-    return rateB - rateA || state.attemptsByTense[b] - state.attemptsByTense[a];
+  const playedBuckets = mode.bucketOrder.filter((bucket) => state.attemptsByBucket[bucket] > 0);
+  const rankedBySuccess = [...playedBuckets].sort((a, b) => {
+    const rateA = state.correctByBucket[a] / state.attemptsByBucket[a];
+    const rateB = state.correctByBucket[b] / state.attemptsByBucket[b];
+    return rateB - rateA || state.attemptsByBucket[b] - state.attemptsByBucket[a];
   });
-  const rankedByErrors = [...playedTenses].sort((a, b) => {
-    return state.errorsByTense[b] - state.errorsByTense[a] || state.attemptsByTense[b] - state.attemptsByTense[a];
+  const rankedByErrors = [...playedBuckets].sort((a, b) => {
+    return state.errorsByBucket[b] - state.errorsByBucket[a] || state.attemptsByBucket[b] - state.attemptsByBucket[a];
   });
-  const bestTense = rankedBySuccess[0] ? TENSES[rankedBySuccess[0]].label : "à découvrir";
-  const hardestTense = rankedByErrors[0] && state.errorsByTense[rankedByErrors[0]] > 0 ? TENSES[rankedByErrors[0]].label : "aucun";
+  const bestBucket = rankedBySuccess[0] ? getBucketInfo(rankedBySuccess[0]).label : mode.emptyBestLabel;
+  const hardestBucket = rankedByErrors[0] && state.errorsByBucket[rankedByErrors[0]] > 0 ? getBucketInfo(rankedByErrors[0]).label : mode.noProblemLabel;
 
   finalSummary.innerHTML = "";
   [
+    ["Mode", mode.label],
     ["Fin", state.gameOverReason || "Partie terminée"],
     ["Score final", state.score],
     ["Réponses", state.answered],
@@ -954,8 +1400,8 @@ function renderFinalSummary() {
     ["Erreurs", state.errors],
     ["Meilleure série", state.bestStreak],
     ["Tiroirs débloqués", state.unlockedDuringGame],
-    ["Temps le plus réussi", bestTense],
-    ["Temps à retravailler", hardestTense],
+    [mode.bestLabel, bestBucket],
+    [mode.hardestLabel, hardestBucket],
   ].forEach(([label, value]) => {
     const card = document.createElement("div");
     card.className = "summary-card";
@@ -968,11 +1414,11 @@ function renderFinalSummary() {
   });
 
   tenseBreakdown.innerHTML = "";
-  TENSE_ORDER.forEach((tense) => {
-    const info = TENSES[tense];
-    const attempts = state.attemptsByTense[tense];
-    const correct = state.correctByTense[tense];
-    const errors = state.errorsByTense[tense];
+  mode.bucketOrder.forEach((bucket) => {
+    const info = getBucketInfo(bucket);
+    const attempts = state.attemptsByBucket[bucket];
+    const correct = state.correctByBucket[bucket];
+    const errors = state.errorsByBucket[bucket];
     const row = document.createElement("div");
     row.className = "breakdown-row";
     const label = document.createElement("strong");
@@ -983,6 +1429,9 @@ function renderFinalSummary() {
     tenseBreakdown.appendChild(row);
   });
 }
+
+renderContentModeSelector();
+updateContentModeDescription();
 
 settingsForm.addEventListener("submit", (event) => {
   event.preventDefault();

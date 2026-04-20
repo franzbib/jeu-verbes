@@ -3,11 +3,11 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Chute des temps verbaux</title>
+    <title>Chute des mots</title>
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
-    <main class="app" aria-label="Jeu pédagogique sur les temps verbaux">
+    <main class="app" aria-label="Mini-jeu pédagogique de tri linguistique">
       <section id="homeScreen" class="screen screen--active" aria-labelledby="homeTitle">
         <div class="intro">
           <div class="classroom-mark" aria-hidden="true">
@@ -19,14 +19,20 @@
           </div>
           <div>
             <p class="eyebrow">FLE B1</p>
-            <h1 id="homeTitle">Chute des temps verbaux</h1>
+            <h1 id="homeTitle">Chute des mots</h1>
             <p class="lead">
-              Choisis le bon tiroir, tiens sous pression et classe chaque forme verbale avant que les erreurs ne montent.
+              Choisis le bon tiroir, tiens sous pression et classe formes, mots ou familles avant que les erreurs ne montent.
             </p>
           </div>
         </div>
 
         <form id="settingsForm" class="settings">
+          <fieldset id="contentModeSelector" class="mode-selector" aria-describedby="contentModeDescription">
+            <legend>Type de tri</legend>
+          </fieldset>
+
+          <p id="contentModeDescription" class="mode-description"></p>
+
           <fieldset>
             <legend>Difficulté</legend>
             <label>
@@ -44,7 +50,7 @@
           </fieldset>
 
           <fieldset>
-            <legend>Mode</legend>
+            <legend>Format de partie</legend>
             <label>
               <input type="radio" name="mode" value="game" checked />
               Partie limitée
@@ -67,7 +73,7 @@
 
           <div class="actions">
             <button type="submit" class="button button--primary">Commencer</button>
-            <button id="testDataButton" type="button" class="button">Utiliser la liste test</button>
+            <button id="testDataButton" type="button" class="button">Utiliser la liste courte</button>
           </div>
         </form>
       </section>
@@ -75,7 +81,7 @@
       <section id="gameScreen" class="screen" aria-labelledby="gameTitle">
         <header class="topbar">
           <div>
-            <p class="eyebrow">Classement des temps</p>
+            <p id="gameEyebrow" class="eyebrow">Classement des temps</p>
             <h2 id="gameTitle">Quelle boîte choisir ?</h2>
           </div>
           <div class="status-zone">
