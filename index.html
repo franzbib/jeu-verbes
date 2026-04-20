@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Jeu des verbes</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <main class="game">
+      <header class="hud">
+        <h1>Jeu des verbes</h1>
+        <div class="scoreboard">
+          <span>Score: <strong id="score">0</strong></span>
+          <span>Vies: <strong id="lives">3</strong></span>
+        </div>
+      </header>
+
+      <section id="playfield" aria-label="Zone de jeu"></section>
+
+      <footer class="controls">
+        <label for="answer">Tape la traduction (anglais):</label>
+        <input id="answer" type="text" autocomplete="off" placeholder="ex: to eat" />
+      </footer>
+    </main>
+
+    <script src="script.js"></script>
+  </body>
+</html>
