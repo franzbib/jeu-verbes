@@ -8,31 +8,33 @@ const TENSES = {
 const GAME_RULES = {
   wordsPerGame: 30,
   maxErrors: 6,
-  keyboardStep: 34,
-  spawnDelayMs: 520,
+  laneCount: 3,
+  spawnY: -96,
+  spawnDelayMs: 560,
+  horizontalEase: 14,
 };
 
 // Vitesses en pixels par seconde. Elles augmentent après chaque réponse.
 const DIFFICULTIES = {
   easy: {
     label: "facile",
-    baseSpeed: 72,
-    speedIncrease: 2.2,
-    maxSpeed: 150,
+    baseSpeed: 82,
+    speedIncrease: 2.1,
+    maxSpeed: 158,
     allowedLevels: ["easy"],
   },
   medium: {
     label: "moyen",
-    baseSpeed: 96,
-    speedIncrease: 3.2,
-    maxSpeed: 190,
+    baseSpeed: 104,
+    speedIncrease: 3,
+    maxSpeed: 198,
     allowedLevels: ["easy", "medium"],
   },
   hard: {
     label: "difficile",
-    baseSpeed: 124,
-    speedIncrease: 4.3,
-    maxSpeed: 245,
+    baseSpeed: 128,
+    speedIncrease: 4,
+    maxSpeed: 248,
     allowedLevels: ["easy", "medium", "hard"],
   },
 };
@@ -213,6 +215,8 @@ const hintToggle = document.getElementById("hintToggle");
 const hintPanel = document.getElementById("hintPanel");
 const playfield = document.getElementById("playfield");
 const fallingWord = document.getElementById("fallingWord");
+const judgementLine = document.querySelector(".judgement-line");
+const binsContainer = document.getElementById("bins");
 const bins = Array.from(document.querySelectorAll(".bin"));
 const feedback = document.getElementById("feedback");
 const restartButton = document.getElementById("restartButton");
@@ -224,8 +228,10 @@ const correctEl = document.getElementById("correctCount");
 const errorEl = document.getElementById("errorCount");
 const streakEl = document.getElementById("streakCount");
 const progressEl = document.getElementById("progressStat");
+const progressBar = document.getElementById("progressBar");
 const finalSummary = document.getElementById("finalSummary");
 const tenseBreakdown = document.getElementById("tenseBreakdown");
+const lanes = Array.from(document.querySelectorAll(".lane"));
 
 const state = {
   mode: "game",
@@ -233,10 +239,14 @@ const state = {
   useTestData: false,
   deck: [],
   current: null,
-  x: 0,
+  laneIndex: 1,
+  currentX: 0,
+  targetX: 0,
   y: 0,
   lastFrameTime: 0,
   animationId: 0,
+  spawnTimer: 0,
+  resolveTimer: 0,
   isResolving: false,
   score: 0,
   correct: 0,
@@ -291,9 +301,13 @@ function refillDeckIfNeeded() {
 
 function resetStats() {
   state.current = null;
-  state.x = 0;
+  state.laneIndex = 1;
+  state.currentX = 0;
+  state.targetX = 0;
   state.y = 0;
   state.lastFrameTime = 0;
+  state.spawnTimer = 0;
+  state.resolveTimer = 0;
   state.isResolving = false;
   state.score = 0;
   state.correct = 0;
@@ -311,8 +325,10 @@ function updateStats() {
 
   if (state.mode === "training") {
     progressEl.textContent = `${state.answered} réponses`;
+    progressBar.style.width = `${Math.min(100, (state.answered % 12) * 8.34)}%`;
   } else {
     progressEl.textContent = `${state.answered} / ${GAME_RULES.wordsPerGame}`;
+    progressBar.style.width = `${Math.min(100, (state.answered / GAME_RULES.wordsPerGame) * 100)}%`;
   }
 }
 
@@ -322,20 +338,40 @@ function currentSpeed() {
   return Math.min(speed, difficulty.maxSpeed);
 }
 
+function getLaneCenter(index) {
+  const bin = bins[index];
+  if (!bin) return playfield.clientWidth / 2;
+  return binsContainer.offsetLeft + bin.offsetLeft + bin.offsetWidth / 2;
+}
+
+function clearLaneHighlights() {
+  bins.forEach((bin) => bin.classList.remove("bin--active", "bin--target", "bin--error"));
+  lanes.forEach((lane) => lane.classList.remove("is-active"));
+}
+
+function updateLaneHighlights() {
+  clearLaneHighlights();
+  bins[state.laneIndex]?.classList.add("bin--active");
+  lanes[state.laneIndex]?.classList.add("is-active");
+}
+
 function startGame({ useTestData = false } = {}) {
   cancelAnimationFrame(state.animationId);
+  window.clearTimeout(state.spawnTimer);
+  window.clearTimeout(state.resolveTimer);
   state.mode = getSelectedValue("mode");
   state.difficulty = getSelectedValue("difficulty");
   state.useTestData = useTestData;
   state.deck = shuffle(getAvailableForms());
   resetStats();
   hintPanel.hidden = !hintToggle.checked;
+  hintPanel.open = hintToggle.checked;
   updateStats();
   clearFeedback();
-  bins.forEach((bin) => bin.classList.remove("bin--target", "bin--error"));
+  clearLaneHighlights();
   showScreen(gameScreen);
   playfield.focus();
-  window.setTimeout(spawnWord, 180);
+  state.spawnTimer = window.setTimeout(spawnWord, 180);
 }
 
 function spawnWord() {
@@ -347,23 +383,22 @@ function spawnWord() {
   refillDeckIfNeeded();
   state.current = state.deck.shift();
   state.isResolving = false;
-  state.y = 18;
-  state.x = playfield.clientWidth / 2;
+  state.laneIndex = Math.floor(GAME_RULES.laneCount / 2);
+  state.targetX = getLaneCenter(state.laneIndex);
+  state.currentX = state.targetX;
+  state.y = GAME_RULES.spawnY;
   state.lastFrameTime = performance.now();
 
   fallingWord.textContent = state.current.text;
   fallingWord.className = "falling-word";
   fallingWord.hidden = false;
+  updateLaneHighlights();
   placeWord();
   state.animationId = requestAnimationFrame(tick);
 }
 
 function placeWord() {
-  const halfWidth = fallingWord.offsetWidth / 2;
-  const minX = halfWidth + 8;
-  const maxX = playfield.clientWidth - halfWidth - 8;
-  state.x = Math.max(minX, Math.min(maxX, state.x));
-  fallingWord.style.left = `${state.x}px`;
+  fallingWord.style.left = `${state.currentX}px`;
   fallingWord.style.top = `${state.y}px`;
 }
 
@@ -373,6 +408,7 @@ function tick(now) {
   const elapsedSeconds = Math.min((now - state.lastFrameTime) / 1000, 0.05);
   state.lastFrameTime = now;
   state.y += currentSpeed() * elapsedSeconds;
+  state.currentX += (state.targetX - state.currentX) * Math.min(1, GAME_RULES.horizontalEase * elapsedSeconds);
   placeWord();
 
   if (hasReachedBins()) {
@@ -385,23 +421,19 @@ function tick(now) {
 
 function hasReachedBins() {
   const wordBottom = state.y + fallingWord.offsetHeight;
-  const binsTop = bins[0].offsetTop;
-  return wordBottom >= binsTop + 8;
+  const judgementY = judgementLine.offsetTop;
+  return wordBottom >= judgementY;
 }
 
 function moveWord(direction) {
   if (!state.current || state.isResolving) return;
-  state.x += direction * GAME_RULES.keyboardStep;
-  placeWord();
+  state.laneIndex = Math.max(0, Math.min(GAME_RULES.laneCount - 1, state.laneIndex + direction));
+  state.targetX = getLaneCenter(state.laneIndex);
+  updateLaneHighlights();
 }
 
 function getChosenTense() {
-  const chosen = bins.find((bin) => {
-    const left = bin.offsetLeft;
-    const right = left + bin.offsetWidth;
-    return state.x >= left && state.x <= right;
-  });
-  return chosen?.dataset.tense ?? bins[1].dataset.tense;
+  return bins[state.laneIndex]?.dataset.tense ?? bins[1].dataset.tense;
 }
 
 function resolveAnswer() {
@@ -424,6 +456,7 @@ function resolveAnswer() {
     state.streak += 1;
     state.score += 10 + Math.min(state.streak, 6) * 2;
     fallingWord.classList.add("correct");
+    chosenBin.classList.remove("bin--active");
     chosenBin.classList.add("bin--target");
     showFeedback(`Correct : ${expectedLabel}`, true);
   } else {
@@ -432,6 +465,7 @@ function resolveAnswer() {
     state.score = Math.max(0, state.score - 3);
     state.errorsByTense[expected] += 1;
     fallingWord.classList.add("wrong");
+    chosenBin.classList.remove("bin--active");
     chosenBin.classList.add("bin--error");
     expectedBin.classList.add("bin--target");
     showFeedback(`Erreur : c'était du ${expectedLabel}`, false);
@@ -439,15 +473,15 @@ function resolveAnswer() {
 
   updateStats();
 
-  window.setTimeout(() => {
+  state.resolveTimer = window.setTimeout(() => {
     fallingWord.hidden = true;
-    bins.forEach((bin) => bin.classList.remove("bin--target", "bin--error"));
+    clearLaneHighlights();
 
     if (shouldEndGame()) {
       finishGame();
     } else {
       state.current = null;
-      window.setTimeout(spawnWord, GAME_RULES.spawnDelayMs);
+      state.spawnTimer = window.setTimeout(spawnWord, GAME_RULES.spawnDelayMs);
     }
   }, 760);
 }
@@ -469,8 +503,11 @@ function shouldEndGame() {
 
 function finishGame() {
   cancelAnimationFrame(state.animationId);
+  window.clearTimeout(state.spawnTimer);
+  window.clearTimeout(state.resolveTimer);
   fallingWord.hidden = true;
   state.current = null;
+  clearLaneHighlights();
   clearFeedback();
   renderFinalSummary();
   showScreen(endScreen);
@@ -516,7 +553,11 @@ playAgainButton.addEventListener("click", () => startGame({ useTestData: state.u
 
 homeButton.addEventListener("click", () => {
   cancelAnimationFrame(state.animationId);
+  window.clearTimeout(state.spawnTimer);
+  window.clearTimeout(state.resolveTimer);
   fallingWord.hidden = true;
+  state.current = null;
+  clearLaneHighlights();
   showScreen(homeScreen);
 });
 
@@ -540,5 +581,7 @@ window.addEventListener("keydown", (event) => {
 
 window.addEventListener("resize", () => {
   if (!state.current) return;
+  state.targetX = getLaneCenter(state.laneIndex);
+  state.currentX = state.targetX;
   placeWord();
 });

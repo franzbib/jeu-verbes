@@ -21,7 +21,7 @@
             <p class="eyebrow">FLE B1</p>
             <h1 id="homeTitle">Chute des temps verbaux</h1>
             <p class="lead">
-              Déplace la forme verbale avec les flèches et fais-la tomber dans la bonne boîte.
+              Choisis le bon couloir, garde le rythme et fais tomber chaque forme verbale dans le bon temps.
             </p>
           </div>
         </div>
@@ -73,27 +73,39 @@
             <p class="eyebrow">Classement des temps</p>
             <h2 id="gameTitle">Quelle boîte choisir ?</h2>
           </div>
-          <div class="stats" aria-label="Statistiques">
-            <span>Score <strong id="score">0</strong></span>
-            <span>Correctes <strong id="correctCount">0</strong></span>
-            <span>Erreurs <strong id="errorCount">0</strong></span>
-            <span>Série <strong id="streakCount">0</strong></span>
-            <span id="progressStat">0 / 30</span>
+          <div class="status-zone">
+            <div class="stats" aria-label="Statistiques">
+              <span>Score <strong id="score">0</strong></span>
+              <span>OK <strong id="correctCount">0</strong></span>
+              <span>Erreurs <strong id="errorCount">0</strong></span>
+              <span>Série <strong id="streakCount">0</strong></span>
+              <span id="progressStat">0 / 30</span>
+            </div>
+            <div class="progress-track" aria-hidden="true">
+              <div id="progressBar" class="progress-bar"></div>
+            </div>
           </div>
         </header>
 
         <section class="game-layout">
-          <aside id="hintPanel" class="hint-panel" aria-label="Rappel des terminaisons">
-            <h3>Rappel rapide</h3>
+          <details id="hintPanel" class="hint-panel" open>
+            <summary>Rappel des terminaisons</summary>
             <p><strong>Imparfait</strong> : -ais, -ait, -ions, -iez, -aient</p>
             <p><strong>Futur</strong> : -rai, -ras, -ra, -rons, -rez, -ront</p>
             <p><strong>Passé simple</strong> : -ai, -as, -a, -âmes, -âtes, -èrent</p>
-          </aside>
+          </details>
 
           <div class="play-area">
             <div id="feedback" class="feedback" role="status" aria-live="polite"></div>
             <div id="playfield" tabindex="0" aria-label="Zone de jeu. Utilise les flèches gauche et droite.">
-              <div class="lane-guide" aria-hidden="true"></div>
+              <div class="lane-grid" aria-hidden="true">
+                <div class="lane" data-lane-label="imparfait"></div>
+                <div class="lane" data-lane-label="futur"></div>
+                <div class="lane" data-lane-label="passé simple"></div>
+              </div>
+              <div class="judgement-line" aria-hidden="true">
+                <span>Ligne de jugement</span>
+              </div>
               <div id="fallingWord" class="falling-word" hidden></div>
               <div id="bins" class="bins" aria-label="Boîtes de réponse">
                 <button class="bin" type="button" data-tense="imparfait">
