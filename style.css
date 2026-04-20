@@ -1,18 +1,20 @@
 :root {
-  --bg: #eef3f7;
-  --ink: #17212f;
-  --muted: #627086;
+  --bg: #f3f6fa;
+  --ink: #181c22;
+  --muted: #607086;
   --paper: #ffffff;
-  --line: #cad6e4;
-  --soft: #f7fafc;
+  --line: #d4dde8;
+  --soft: #f8fafc;
   --teal: #0f8b8d;
   --blue: #2867c8;
   --plum: #7557b8;
   --green: #1f9d68;
   --red: #d95f5f;
   --amber: #f4c95d;
-  --shadow: 0 18px 50px rgba(39, 55, 77, 0.16);
-  --small-shadow: 0 10px 24px rgba(39, 55, 77, 0.12);
+  --coral: #c95f36;
+  --lane-count: 3;
+  --shadow: 0 22px 54px rgba(31, 42, 58, 0.15);
+  --small-shadow: 0 12px 24px rgba(31, 42, 58, 0.11);
 }
 
 * {
@@ -24,11 +26,12 @@ body {
   min-height: 100vh;
   color: var(--ink);
   background:
-    linear-gradient(90deg, rgba(15, 139, 141, 0.08) 1px, transparent 1px),
-    linear-gradient(180deg, rgba(40, 103, 200, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(24, 28, 34, 0.045) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(24, 28, 34, 0.035) 1px, transparent 1px),
+    linear-gradient(135deg, rgba(15, 139, 141, 0.1), transparent 36%, rgba(201, 95, 54, 0.08)),
     var(--bg);
-  background-size: 46px 46px;
-  font-family: Arial, Helvetica, sans-serif;
+  background-size: 44px 44px, 44px 44px, 100% 100%;
+  font-family: "Segoe UI", Arial, Helvetica, sans-serif;
 }
 
 button,
@@ -61,10 +64,11 @@ button {
 .hint-panel,
 .game-footer,
 .end-panel {
-  background: rgba(255, 255, 255, 0.92);
-  border: 1px solid rgba(202, 214, 228, 0.95);
+  background: rgba(255, 255, 255, 0.94);
+  border: 1px solid rgba(212, 221, 232, 0.98);
   border-radius: 8px;
   box-shadow: var(--shadow);
+  backdrop-filter: blur(10px);
 }
 
 .intro {
@@ -73,8 +77,8 @@ button {
   gap: 24px;
   align-items: center;
   max-width: 920px;
-  margin: 34px auto 16px;
-  padding: 30px;
+  margin: 28px auto 16px;
+  padding: 32px;
 }
 
 .classroom-mark svg {
@@ -99,7 +103,7 @@ button {
 
 .eyebrow {
   margin: 0 0 8px;
-  color: var(--teal);
+  color: #0b7476;
   font-size: 0.82rem;
   font-weight: 800;
   letter-spacing: 0;
@@ -121,11 +125,13 @@ h3 {
 }
 
 h1 {
-  font-size: clamp(2.2rem, 5vw, 4.2rem);
+  font-size: clamp(2.25rem, 5vw, 4.25rem);
+  letter-spacing: 0;
 }
 
 h2 {
   font-size: clamp(1.35rem, 2.6vw, 2rem);
+  letter-spacing: 0;
 }
 
 .lead {
@@ -167,6 +173,12 @@ label {
   border: 1px solid var(--line);
   border-radius: 8px;
   cursor: pointer;
+  transition: border-color 160ms ease, transform 160ms ease, background 160ms ease;
+}
+
+label:hover {
+  background: #ffffff;
+  border-color: #9fb0c5;
 }
 
 .toggle {
@@ -191,9 +203,13 @@ label {
   cursor: pointer;
   font-weight: 800;
   box-shadow: var(--small-shadow);
+  transition: transform 140ms ease, box-shadow 140ms ease, border-color 140ms ease;
 }
 
-.button:hover,
+.button:hover {
+  transform: translateY(-1px);
+}
+
 .button:focus-visible,
 .bin:focus-visible {
   outline: 3px solid rgba(40, 103, 200, 0.24);
@@ -202,8 +218,8 @@ label {
 
 .button--primary {
   color: #ffffff;
-  background: var(--blue);
-  border-color: var(--blue);
+  background: #1f6f7a;
+  border-color: #1f6f7a;
 }
 
 .button--quiet {
@@ -213,10 +229,10 @@ label {
 
 .topbar {
   display: grid;
-  grid-template-columns: minmax(220px, 1fr) minmax(420px, 0.95fr);
+  grid-template-columns: minmax(220px, 0.75fr) minmax(460px, 1fr);
   gap: 18px;
   align-items: center;
-  padding: 15px 16px;
+  padding: 16px 18px;
 }
 
 .status-zone {
@@ -235,11 +251,12 @@ label {
   padding: 7px 8px;
   color: var(--muted);
   text-align: center;
-  background: #eef5fb;
+  background: linear-gradient(180deg, #ffffff, #f0f5fa);
   border: 1px solid #dbe5ef;
   border-radius: 8px;
   font-size: 0.88rem;
   font-weight: 800;
+  transition: border-color 180ms ease, transform 180ms ease, background 180ms ease;
 }
 
 .stats strong {
@@ -247,6 +264,13 @@ label {
   margin-top: 2px;
   color: var(--ink);
   font-size: 1.14rem;
+}
+
+.stats span.stat--combo {
+  color: #684700;
+  background: linear-gradient(180deg, #fff8dd, #fff0b8);
+  border-color: rgba(244, 201, 93, 0.8);
+  transform: translateY(-1px);
 }
 
 .progress-track {
@@ -259,7 +283,7 @@ label {
 .progress-bar {
   width: 0%;
   height: 100%;
-  background: linear-gradient(90deg, var(--teal), var(--blue), var(--plum));
+  background: linear-gradient(90deg, var(--teal), var(--amber), var(--coral));
   border-radius: inherit;
   transition: width 220ms ease;
 }
@@ -293,18 +317,19 @@ label {
 }
 
 .play-area {
+  position: relative;
   min-width: 0;
 }
 
 #playfield {
   position: relative;
-  height: min(78vh, 820px);
-  min-height: 640px;
+  height: min(83vh, 900px);
+  min-height: 700px;
   overflow: hidden;
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(236, 244, 249, 0.96)),
-    linear-gradient(180deg, rgba(15, 139, 141, 0.08), transparent 32%, rgba(117, 87, 184, 0.08));
-  border: 2px solid #aebed0;
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(237, 243, 248, 0.96)),
+    linear-gradient(180deg, rgba(15, 139, 141, 0.08), transparent 36%, rgba(201, 95, 54, 0.08));
+  border: 2px solid #a9b8c8;
   border-radius: 8px;
   box-shadow: var(--shadow);
   outline: none;
@@ -313,7 +338,7 @@ label {
 #playfield::before {
   content: "";
   position: absolute;
-  inset: 14px 14px 128px;
+  inset: 14px 14px 140px;
   z-index: 0;
   border: 1px solid rgba(117, 133, 153, 0.24);
   border-radius: 8px;
@@ -322,10 +347,10 @@ label {
 
 .lane-grid {
   position: absolute;
-  inset: 0 12px 118px;
+  inset: 0 12px 132px;
   z-index: 1;
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(var(--lane-count), minmax(0, 1fr));
   gap: 10px;
   padding: 14px 0 0;
   pointer-events: none;
@@ -334,11 +359,13 @@ label {
 .lane {
   position: relative;
   min-width: 0;
+  overflow: hidden;
   border-radius: 8px;
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.38), rgba(255, 255, 255, 0.12)),
     repeating-linear-gradient(180deg, transparent 0 72px, rgba(23, 33, 47, 0.06) 73px 74px);
   border: 1px solid rgba(131, 147, 168, 0.28);
+  transition: border-color 180ms ease, box-shadow 180ms ease, background 180ms ease;
 }
 
 .lane::before {
@@ -365,10 +392,79 @@ label {
   box-shadow: inset 0 0 0 2px rgba(244, 201, 93, 0.28);
 }
 
+.lane--danger {
+  border-color: rgba(217, 95, 95, 0.72);
+  box-shadow: inset 0 0 0 2px rgba(217, 95, 95, 0.12);
+}
+
+.lane--overflow {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.28), rgba(217, 95, 95, 0.12)),
+    repeating-linear-gradient(180deg, transparent 0 72px, rgba(217, 95, 95, 0.12) 73px 74px);
+}
+
+.lane--new {
+  animation: laneUnlock 820ms ease both;
+}
+
+.error-stack {
+  position: absolute;
+  right: 8px;
+  bottom: 10px;
+  left: 8px;
+  display: grid;
+  gap: 5px;
+  align-content: end;
+}
+
+.error-brick {
+  min-height: var(--error-brick-height, 38px);
+  display: grid;
+  place-items: center;
+  padding: 5px 8px;
+  overflow: hidden;
+  color: #ffffff;
+  background: linear-gradient(180deg, #e56d6d, #c84e4e);
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  border-radius: 6px;
+  box-shadow: 0 8px 14px rgba(90, 28, 28, 0.2);
+  font-size: clamp(0.72rem, 1vw, 0.92rem);
+  font-weight: 900;
+  line-height: 1.08;
+  text-align: center;
+  animation: brickDrop 220ms ease both;
+}
+
+@keyframes brickDrop {
+  from {
+    opacity: 0;
+    transform: translateY(-12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes laneUnlock {
+  0% {
+    box-shadow: inset 0 0 0 0 rgba(244, 201, 93, 0);
+  }
+
+  55% {
+    box-shadow: inset 0 0 0 4px rgba(244, 201, 93, 0.42);
+  }
+
+  100% {
+    box-shadow: inset 0 0 0 0 rgba(244, 201, 93, 0);
+  }
+}
+
 .judgement-line {
   position: absolute;
   right: 18px;
-  bottom: 124px;
+  bottom: 138px;
   left: 18px;
   z-index: 2;
   height: 3px;
@@ -393,19 +489,19 @@ label {
 .falling-word {
   position: absolute;
   z-index: 4;
-  top: -88px;
+  top: -168px;
   left: 50%;
-  width: min(340px, calc((100% - 72px) / 3));
+  width: min(330px, max(150px, calc((100% - 72px) / var(--lane-count, 3))));
   max-width: 92%;
   min-height: 68px;
   display: grid;
   place-items: center;
   padding: 13px 16px;
   color: #ffffff;
-  background: linear-gradient(180deg, #2f73d7, #2458aa);
+  background: linear-gradient(180deg, #2d7681, #1f5d66);
   border: 2px solid rgba(255, 255, 255, 0.86);
   border-radius: 8px;
-  box-shadow: 0 18px 34px rgba(40, 103, 200, 0.26);
+  box-shadow: 0 18px 34px rgba(31, 93, 102, 0.26);
   font-size: clamp(1.26rem, 2.1vw, 2rem);
   font-weight: 900;
   line-height: 1.16;
@@ -433,37 +529,51 @@ label {
   bottom: 12px;
   left: 12px;
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(var(--lane-count), minmax(0, 1fr));
   gap: 10px;
 }
 
 .bin {
   position: relative;
-  min-height: 104px;
-  padding: 14px 8px;
+  min-height: 112px;
+  padding: 13px 8px 12px;
   overflow: hidden;
   color: #ffffff;
-  background: var(--teal);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.14), transparent 38%), var(--tense-color, var(--teal));
   border: 0;
   border-radius: 8px;
   box-shadow: inset 0 -8px 0 rgba(0, 0, 0, 0.14), var(--small-shadow);
   cursor: pointer;
-}
-
-.bin:nth-child(2) {
-  background: var(--blue);
-}
-
-.bin:nth-child(3) {
-  background: var(--plum);
+  transition: transform 140ms ease, box-shadow 140ms ease, filter 140ms ease;
 }
 
 .bin span {
   position: relative;
   z-index: 1;
   display: block;
-  font-size: clamp(1.02rem, 1.6vw, 1.42rem);
+  font-size: clamp(0.9rem, 1.35vw, 1.32rem);
   font-weight: 900;
+  line-height: 1.08;
+}
+
+.bin small {
+  position: relative;
+  z-index: 1;
+  display: block;
+  margin-top: 7px;
+  color: rgba(255, 255, 255, 0.84);
+  font-size: clamp(0.66rem, 0.8vw, 0.78rem);
+  font-weight: 800;
+  line-height: 1.15;
+}
+
+.bin:hover {
+  transform: translateY(-2px);
+  filter: saturate(1.04);
+}
+
+.bin--new {
+  animation: binUnlock 900ms ease both;
 }
 
 .bin.bin--active {
@@ -487,7 +597,25 @@ label {
     0 18px 28px rgba(217, 95, 95, 0.16);
 }
 
-.feedback {
+@keyframes binUnlock {
+  0% {
+    transform: translateY(10px);
+    opacity: 0;
+  }
+
+  60% {
+    transform: translateY(-3px);
+    opacity: 1;
+  }
+
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.feedback,
+.unlock-banner {
   position: absolute;
   z-index: 8;
   top: 14px;
@@ -508,7 +636,15 @@ label {
   pointer-events: none;
 }
 
-.feedback.is-visible {
+.unlock-banner {
+  top: 68px;
+  color: #173b31;
+  background: #eafff5;
+  border-color: rgba(31, 157, 104, 0.44);
+}
+
+.feedback.is-visible,
+.unlock-banner.is-visible {
   opacity: 1;
   transform: translateX(-50%) translateY(0);
 }
@@ -536,14 +672,14 @@ label {
 }
 
 .end-panel {
-  max-width: 780px;
+  max-width: 920px;
   margin: 48px auto 0;
   padding: 28px;
 }
 
 .final-summary {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 10px;
   margin: 20px 0;
 }
@@ -551,7 +687,7 @@ label {
 .summary-card,
 .breakdown-row {
   padding: 12px;
-  background: #eef5fb;
+  background: linear-gradient(180deg, #ffffff, #f0f5fa);
   border: 1px solid #dbe5ef;
   border-radius: 8px;
 }
@@ -572,6 +708,7 @@ label {
   display: flex;
   justify-content: space-between;
   gap: 12px;
+  align-items: center;
 }
 
 @media (max-width: 980px) {
@@ -589,8 +726,12 @@ label {
   }
 
   #playfield {
-    height: 72vh;
-    min-height: 560px;
+    height: 76vh;
+    min-height: 620px;
+  }
+
+  .final-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
@@ -614,27 +755,31 @@ label {
   }
 
   #playfield {
-    height: 70vh;
-    min-height: 500px;
+    height: 72vh;
+    min-height: 560px;
+  }
+
+  #playfield::before {
+    inset: 12px 10px 112px;
   }
 
   .falling-word {
-    width: min(290px, calc((100% - 50px) / 3));
+    width: min(280px, max(128px, calc((100% - 42px) / var(--lane-count, 3))));
     min-height: 62px;
     padding: 10px 8px;
   }
 
   .bin {
-    min-height: 82px;
+    min-height: 88px;
     padding: 10px 5px;
   }
 
   .judgement-line {
-    bottom: 101px;
+    bottom: 106px;
   }
 
   .lane-grid {
-    bottom: 96px;
+    inset: 0 8px 101px;
   }
 
   .final-summary {
@@ -655,19 +800,31 @@ label {
   }
 
   .bins {
-    gap: 5px;
+    gap: 4px;
+    right: 8px;
+    left: 8px;
   }
 
   .lane-grid {
-    gap: 5px;
+    gap: 4px;
   }
 
   .bin {
-    min-height: 72px;
+    min-height: 74px;
   }
 
   .bin span,
   .lane::before {
-    font-size: 0.82rem;
+    font-size: 0.72rem;
+  }
+
+  .bin small {
+    display: none;
+  }
+
+  .error-brick {
+    min-height: 30px;
+    padding: 4px;
+    font-size: 0.66rem;
   }
 }

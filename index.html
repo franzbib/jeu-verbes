@@ -21,7 +21,7 @@
             <p class="eyebrow">FLE B1</p>
             <h1 id="homeTitle">Chute des temps verbaux</h1>
             <p class="lead">
-              Choisis le bon couloir, garde le rythme et fais tomber chaque forme verbale dans le bon temps.
+              Choisis le bon tiroir, tiens sous pression et classe chaque forme verbale avant que les erreurs ne montent.
             </p>
           </div>
         </div>
@@ -60,6 +60,11 @@
             Afficher le rappel des terminaisons
           </label>
 
+          <label class="toggle">
+            <input id="soundToggle" type="checkbox" checked />
+            Sons discrets
+          </label>
+
           <div class="actions">
             <button type="submit" class="button button--primary">Commencer</button>
             <button id="testDataButton" type="button" class="button">Utiliser la liste test</button>
@@ -96,34 +101,21 @@
           </details>
 
           <div class="play-area">
+            <div id="unlockBanner" class="unlock-banner" role="status" aria-live="polite"></div>
             <div id="feedback" class="feedback" role="status" aria-live="polite"></div>
-            <div id="playfield" tabindex="0" aria-label="Zone de jeu. Utilise les flèches gauche et droite.">
-              <div class="lane-grid" aria-hidden="true">
-                <div class="lane" data-lane-label="imparfait"></div>
-                <div class="lane" data-lane-label="futur"></div>
-                <div class="lane" data-lane-label="passé simple"></div>
-              </div>
+            <div id="playfield" tabindex="0" aria-label="Zone de jeu. Utilise les flèches gauche, droite et bas, ou clique sur un tiroir.">
+              <div id="laneGrid" class="lane-grid" aria-hidden="true"></div>
               <div class="judgement-line" aria-hidden="true">
-                <span>Ligne de jugement</span>
+                <span>Zone de dépôt</span>
               </div>
               <div id="fallingWord" class="falling-word" hidden></div>
-              <div id="bins" class="bins" aria-label="Boîtes de réponse">
-                <button class="bin" type="button" data-tense="imparfait">
-                  <span>imparfait</span>
-                </button>
-                <button class="bin" type="button" data-tense="futur">
-                  <span>futur</span>
-                </button>
-                <button class="bin" type="button" data-tense="passe_simple">
-                  <span>passé simple</span>
-                </button>
-              </div>
+              <div id="bins" class="bins" aria-label="Boîtes de réponse"></div>
             </div>
           </div>
         </section>
 
         <footer class="game-footer">
-          <p>Touches : flèche gauche, flèche droite. La réponse est validée quand la forme arrive en bas.</p>
+          <p>Touches : gauche / droite pour viser, bas pour accélérer. Tu peux aussi cliquer un tiroir.</p>
           <button id="restartButton" type="button" class="button">Rejouer</button>
           <button id="homeButton" type="button" class="button button--quiet">Accueil</button>
         </footer>

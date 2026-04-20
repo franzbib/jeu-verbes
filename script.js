@@ -1,41 +1,82 @@
 const TENSES = {
-  imparfait: { label: "imparfait" },
-  futur: { label: "futur" },
-  passe_simple: { label: "passé simple" },
+  imparfait: {
+    label: "imparfait",
+    color: "#0f8b8d",
+    hint: "-ais, -ait, -ions, -iez, -aient",
+    errorHint: "terminaisons en -ais, -ait, -ions...",
+  },
+  futur: {
+    label: "futur",
+    color: "#2867c8",
+    hint: "-rai, -ras, -ra, -rons, -rez, -ront",
+    errorHint: "base du futur + terminaison",
+  },
+  passe_simple: {
+    label: "passé simple",
+    color: "#7557b8",
+    hint: "-ai, -as, -a, -âmes, -âtes, -èrent",
+    errorHint: "formes brèves ou littéraires",
+  },
+  conditionnel_present: {
+    label: "conditionnel présent",
+    color: "#c95f36",
+    hint: "-rais, -rait, -rions, -riez, -raient",
+    errorHint: "base du futur + terminaisons de l'imparfait",
+  },
+  passe_compose: {
+    label: "passé composé",
+    color: "#1f9d68",
+    hint: "auxiliaire + participe passé",
+    errorHint: "auxiliaire + participe passé",
+  },
 };
 
-// Réglages faciles à modifier pour ajuster la durée et la difficulté.
+const TENSE_ORDER = ["imparfait", "futur", "passe_simple", "conditionnel_present", "passe_compose"];
+const INITIAL_TENSES = TENSE_ORDER.slice(0, 3);
+
+// Réglages faciles à modifier pour ajuster la durée, la difficulté et les sensations.
 const GAME_RULES = {
+  enableProgressiveTenseUnlocks: true,
   wordsPerGame: 30,
-  maxErrors: 6,
-  laneCount: 3,
-  spawnY: -96,
-  spawnDelayMs: 560,
-  horizontalEase: 14,
+  spawnY: -168,
+  spawnDelayMs: 520,
+  horizontalEase: 24,
+  downAccelerationFactor: 2.35,
+  maxErrorBricksPerLane: 6,
+  errorBrickHeight: 38,
+  correctBaseScore: 12,
+  comboBonusStep: 2,
+  comboBonusCap: 12,
+  errorPenalty: 4,
+  feedbackDurationMs: 740,
+  soundDefaultOn: true,
 };
 
 // Vitesses en pixels par seconde. Elles augmentent après chaque réponse.
 const DIFFICULTIES = {
   easy: {
     label: "facile",
-    baseSpeed: 82,
-    speedIncrease: 2.1,
-    maxSpeed: 158,
+    baseSpeed: 92,
+    speedIncrease: 2.25,
+    maxSpeed: 172,
     allowedLevels: ["easy"],
+    unlocks: { conditionnel_present: 8, passe_compose: 18 },
   },
   medium: {
     label: "moyen",
-    baseSpeed: 104,
-    speedIncrease: 3,
-    maxSpeed: 198,
+    baseSpeed: 118,
+    speedIncrease: 3.2,
+    maxSpeed: 220,
     allowedLevels: ["easy", "medium"],
+    unlocks: { conditionnel_present: 6, passe_compose: 14 },
   },
   hard: {
     label: "difficile",
-    baseSpeed: 128,
-    speedIncrease: 4,
-    maxSpeed: 248,
+    baseSpeed: 142,
+    speedIncrease: 4.35,
+    maxSpeed: 274,
     allowedLevels: ["easy", "medium", "hard"],
+    unlocks: { conditionnel_present: 5, passe_compose: 12 },
   },
 };
 
@@ -50,10 +91,18 @@ const TEST_FORMS = [
   { text: "vous aviez", tense: "imparfait", verb: "avoir", person: "vous", level: "easy", irregular: true },
   { text: "ils comprendront", tense: "futur", verb: "comprendre", person: "ils", level: "medium", irregular: true },
   { text: "elle choisit", tense: "passe_simple", verb: "choisir", person: "elle", level: "easy", irregular: false },
+  { text: "je parlerais", tense: "conditionnel_present", verb: "parler", person: "je", level: "easy", irregular: false },
+  { text: "nous irions", tense: "conditionnel_present", verb: "aller", person: "nous", level: "easy", irregular: true },
+  { text: "elle aurait", tense: "conditionnel_present", verb: "avoir", person: "elle", level: "easy", irregular: true },
+  { text: "ils feraient", tense: "conditionnel_present", verb: "faire", person: "ils", level: "medium", irregular: true },
+  { text: "j'ai parlé", tense: "passe_compose", verb: "parler", person: "je", level: "easy", irregular: false },
+  { text: "tu es allé", tense: "passe_compose", verb: "aller", person: "tu", level: "easy", irregular: true },
+  { text: "nous avons vu", tense: "passe_compose", verb: "voir", person: "nous", level: "medium", irregular: true },
+  { text: "elles ont compris", tense: "passe_compose", verb: "comprendre", person: "elles", level: "medium", irregular: true },
 ];
 
 // Liste pédagogique principale. Pour ajouter des verbes, copier un objet et modifier
-// text, tense, verb, person. Pour ajouter un temps, compléter TENSES et les boîtes HTML.
+// text, tense, verb, person. Pour ajouter un temps, compléter TENSES et TENSE_ORDER.
 const GAME_FORMS = [
   { text: "j'étais", tense: "imparfait", verb: "être", person: "je", level: "easy", irregular: true },
   { text: "tu étais", tense: "imparfait", verb: "être", person: "tu", level: "easy", irregular: true },
@@ -204,6 +253,98 @@ const GAME_FORMS = [
   { text: "nous vécûmes", tense: "passe_simple", verb: "vivre", person: "nous", level: "hard", irregular: true },
   { text: "ils attendirent", tense: "passe_simple", verb: "attendre", person: "ils", level: "easy", irregular: false },
   { text: "vous vendîtes", tense: "passe_simple", verb: "vendre", person: "vous", level: "hard", irregular: false },
+
+  { text: "je serais", tense: "conditionnel_present", verb: "être", person: "je", level: "easy", irregular: true },
+  { text: "tu serais", tense: "conditionnel_present", verb: "être", person: "tu", level: "easy", irregular: true },
+  { text: "nous serions", tense: "conditionnel_present", verb: "être", person: "nous", level: "easy", irregular: true },
+  { text: "ils auraient", tense: "conditionnel_present", verb: "avoir", person: "ils", level: "easy", irregular: true },
+  { text: "j'aurais", tense: "conditionnel_present", verb: "avoir", person: "je", level: "easy", irregular: true },
+  { text: "vous auriez", tense: "conditionnel_present", verb: "avoir", person: "vous", level: "easy", irregular: true },
+  { text: "j'irais", tense: "conditionnel_present", verb: "aller", person: "je", level: "easy", irregular: true },
+  { text: "nous irions", tense: "conditionnel_present", verb: "aller", person: "nous", level: "easy", irregular: true },
+  { text: "elles iraient", tense: "conditionnel_present", verb: "aller", person: "elles", level: "easy", irregular: true },
+  { text: "je ferais", tense: "conditionnel_present", verb: "faire", person: "je", level: "easy", irregular: true },
+  { text: "vous feriez", tense: "conditionnel_present", verb: "faire", person: "vous", level: "medium", irregular: true },
+  { text: "il viendrait", tense: "conditionnel_present", verb: "venir", person: "il", level: "easy", irregular: true },
+  { text: "elles viendraient", tense: "conditionnel_present", verb: "venir", person: "elles", level: "medium", irregular: true },
+  { text: "je prendrais", tense: "conditionnel_present", verb: "prendre", person: "je", level: "easy", irregular: true },
+  { text: "nous prendrions", tense: "conditionnel_present", verb: "prendre", person: "nous", level: "medium", irregular: true },
+  { text: "tu verrais", tense: "conditionnel_present", verb: "voir", person: "tu", level: "easy", irregular: true },
+  { text: "nous verrions", tense: "conditionnel_present", verb: "voir", person: "nous", level: "medium", irregular: true },
+  { text: "je pourrais", tense: "conditionnel_present", verb: "pouvoir", person: "je", level: "easy", irregular: true },
+  { text: "ils pourraient", tense: "conditionnel_present", verb: "pouvoir", person: "ils", level: "easy", irregular: true },
+  { text: "tu voudrais", tense: "conditionnel_present", verb: "vouloir", person: "tu", level: "easy", irregular: true },
+  { text: "elle voudrait", tense: "conditionnel_present", verb: "vouloir", person: "elle", level: "easy", irregular: true },
+  { text: "je devrais", tense: "conditionnel_present", verb: "devoir", person: "je", level: "easy", irregular: true },
+  { text: "nous devrions", tense: "conditionnel_present", verb: "devoir", person: "nous", level: "medium", irregular: true },
+  { text: "il dirait", tense: "conditionnel_present", verb: "dire", person: "il", level: "easy", irregular: true },
+  { text: "vous diriez", tense: "conditionnel_present", verb: "dire", person: "vous", level: "easy", irregular: true },
+  { text: "je lirais", tense: "conditionnel_present", verb: "lire", person: "je", level: "easy", irregular: true },
+  { text: "tu écrirais", tense: "conditionnel_present", verb: "écrire", person: "tu", level: "medium", irregular: true },
+  { text: "ils mettraient", tense: "conditionnel_present", verb: "mettre", person: "ils", level: "easy", irregular: true },
+  { text: "elle partirait", tense: "conditionnel_present", verb: "partir", person: "elle", level: "easy", irregular: true },
+  { text: "nous sortirions", tense: "conditionnel_present", verb: "sortir", person: "nous", level: "easy", irregular: true },
+  { text: "je finirais", tense: "conditionnel_present", verb: "finir", person: "je", level: "easy", irregular: false },
+  { text: "vous choisiriez", tense: "conditionnel_present", verb: "choisir", person: "vous", level: "easy", irregular: false },
+  { text: "tu parlerais", tense: "conditionnel_present", verb: "parler", person: "tu", level: "easy", irregular: false },
+  { text: "elle aimerait", tense: "conditionnel_present", verb: "aimer", person: "elle", level: "easy", irregular: false },
+  { text: "nous habiterions", tense: "conditionnel_present", verb: "habiter", person: "nous", level: "easy", irregular: false },
+  { text: "ils travailleraient", tense: "conditionnel_present", verb: "travailler", person: "ils", level: "easy", irregular: false },
+  { text: "je mangerais", tense: "conditionnel_present", verb: "manger", person: "je", level: "easy", irregular: false },
+  { text: "nous commencerions", tense: "conditionnel_present", verb: "commencer", person: "nous", level: "medium", irregular: false },
+  { text: "tu apprendrais", tense: "conditionnel_present", verb: "apprendre", person: "tu", level: "medium", irregular: true },
+  { text: "ils comprendraient", tense: "conditionnel_present", verb: "comprendre", person: "ils", level: "medium", irregular: true },
+  { text: "je connaîtrais", tense: "conditionnel_present", verb: "connaître", person: "je", level: "medium", irregular: true },
+  { text: "elle boirait", tense: "conditionnel_present", verb: "boire", person: "elle", level: "medium", irregular: true },
+  { text: "nous vivrions", tense: "conditionnel_present", verb: "vivre", person: "nous", level: "medium", irregular: true },
+  { text: "ils attendraient", tense: "conditionnel_present", verb: "attendre", person: "ils", level: "easy", irregular: false },
+  { text: "vous vendriez", tense: "conditionnel_present", verb: "vendre", person: "vous", level: "easy", irregular: false },
+
+  { text: "j'ai été", tense: "passe_compose", verb: "être", person: "je", level: "easy", irregular: true },
+  { text: "tu as été", tense: "passe_compose", verb: "être", person: "tu", level: "easy", irregular: true },
+  { text: "nous avons été", tense: "passe_compose", verb: "être", person: "nous", level: "easy", irregular: true },
+  { text: "j'ai eu", tense: "passe_compose", verb: "avoir", person: "je", level: "easy", irregular: true },
+  { text: "elle a eu", tense: "passe_compose", verb: "avoir", person: "elle", level: "easy", irregular: true },
+  { text: "vous avez eu", tense: "passe_compose", verb: "avoir", person: "vous", level: "easy", irregular: true },
+  { text: "je suis allé", tense: "passe_compose", verb: "aller", person: "je", level: "easy", irregular: true },
+  { text: "tu es allé", tense: "passe_compose", verb: "aller", person: "tu", level: "easy", irregular: true },
+  { text: "elles sont allées", tense: "passe_compose", verb: "aller", person: "elles", level: "easy", irregular: true },
+  { text: "j'ai fait", tense: "passe_compose", verb: "faire", person: "je", level: "easy", irregular: true },
+  { text: "nous avons fait", tense: "passe_compose", verb: "faire", person: "nous", level: "easy", irregular: true },
+  { text: "il est venu", tense: "passe_compose", verb: "venir", person: "il", level: "easy", irregular: true },
+  { text: "elles sont venues", tense: "passe_compose", verb: "venir", person: "elles", level: "medium", irregular: true },
+  { text: "j'ai pris", tense: "passe_compose", verb: "prendre", person: "je", level: "easy", irregular: true },
+  { text: "nous avons pris", tense: "passe_compose", verb: "prendre", person: "nous", level: "medium", irregular: true },
+  { text: "tu as vu", tense: "passe_compose", verb: "voir", person: "tu", level: "easy", irregular: true },
+  { text: "nous avons vu", tense: "passe_compose", verb: "voir", person: "nous", level: "medium", irregular: true },
+  { text: "j'ai pu", tense: "passe_compose", verb: "pouvoir", person: "je", level: "easy", irregular: true },
+  { text: "ils ont pu", tense: "passe_compose", verb: "pouvoir", person: "ils", level: "easy", irregular: true },
+  { text: "tu as voulu", tense: "passe_compose", verb: "vouloir", person: "tu", level: "easy", irregular: true },
+  { text: "elle a voulu", tense: "passe_compose", verb: "vouloir", person: "elle", level: "easy", irregular: true },
+  { text: "j'ai dû", tense: "passe_compose", verb: "devoir", person: "je", level: "easy", irregular: true },
+  { text: "nous avons dû", tense: "passe_compose", verb: "devoir", person: "nous", level: "medium", irregular: true },
+  { text: "il a dit", tense: "passe_compose", verb: "dire", person: "il", level: "easy", irregular: true },
+  { text: "vous avez dit", tense: "passe_compose", verb: "dire", person: "vous", level: "easy", irregular: true },
+  { text: "j'ai lu", tense: "passe_compose", verb: "lire", person: "je", level: "easy", irregular: true },
+  { text: "tu as écrit", tense: "passe_compose", verb: "écrire", person: "tu", level: "medium", irregular: true },
+  { text: "ils ont mis", tense: "passe_compose", verb: "mettre", person: "ils", level: "easy", irregular: true },
+  { text: "elle est partie", tense: "passe_compose", verb: "partir", person: "elle", level: "easy", irregular: true },
+  { text: "nous sommes sortis", tense: "passe_compose", verb: "sortir", person: "nous", level: "easy", irregular: true },
+  { text: "j'ai fini", tense: "passe_compose", verb: "finir", person: "je", level: "easy", irregular: false },
+  { text: "vous avez choisi", tense: "passe_compose", verb: "choisir", person: "vous", level: "easy", irregular: false },
+  { text: "tu as parlé", tense: "passe_compose", verb: "parler", person: "tu", level: "easy", irregular: false },
+  { text: "elle a aimé", tense: "passe_compose", verb: "aimer", person: "elle", level: "easy", irregular: false },
+  { text: "nous avons habité", tense: "passe_compose", verb: "habiter", person: "nous", level: "easy", irregular: false },
+  { text: "ils ont travaillé", tense: "passe_compose", verb: "travailler", person: "ils", level: "easy", irregular: false },
+  { text: "j'ai mangé", tense: "passe_compose", verb: "manger", person: "je", level: "easy", irregular: false },
+  { text: "nous avons commencé", tense: "passe_compose", verb: "commencer", person: "nous", level: "medium", irregular: false },
+  { text: "tu as appris", tense: "passe_compose", verb: "apprendre", person: "tu", level: "medium", irregular: true },
+  { text: "ils ont compris", tense: "passe_compose", verb: "comprendre", person: "ils", level: "medium", irregular: true },
+  { text: "j'ai connu", tense: "passe_compose", verb: "connaître", person: "je", level: "medium", irregular: true },
+  { text: "elle a bu", tense: "passe_compose", verb: "boire", person: "elle", level: "medium", irregular: true },
+  { text: "nous avons vécu", tense: "passe_compose", verb: "vivre", person: "nous", level: "medium", irregular: true },
+  { text: "ils ont attendu", tense: "passe_compose", verb: "attendre", person: "ils", level: "easy", irregular: false },
+  { text: "vous avez vendu", tense: "passe_compose", verb: "vendre", person: "vous", level: "easy", irregular: false },
 ];
 
 const homeScreen = document.getElementById("homeScreen");
@@ -212,13 +353,15 @@ const endScreen = document.getElementById("endScreen");
 const settingsForm = document.getElementById("settingsForm");
 const testDataButton = document.getElementById("testDataButton");
 const hintToggle = document.getElementById("hintToggle");
+const soundToggle = document.getElementById("soundToggle");
 const hintPanel = document.getElementById("hintPanel");
 const playfield = document.getElementById("playfield");
+const laneGrid = document.getElementById("laneGrid");
 const fallingWord = document.getElementById("fallingWord");
 const judgementLine = document.querySelector(".judgement-line");
 const binsContainer = document.getElementById("bins");
-const bins = Array.from(document.querySelectorAll(".bin"));
 const feedback = document.getElementById("feedback");
+const unlockBanner = document.getElementById("unlockBanner");
 const restartButton = document.getElementById("restartButton");
 const homeButton = document.getElementById("homeButton");
 const playAgainButton = document.getElementById("playAgainButton");
@@ -231,33 +374,51 @@ const progressEl = document.getElementById("progressStat");
 const progressBar = document.getElementById("progressBar");
 const finalSummary = document.getElementById("finalSummary");
 const tenseBreakdown = document.getElementById("tenseBreakdown");
-const lanes = Array.from(document.querySelectorAll(".lane"));
+
+let bins = [];
+let lanes = [];
 
 const state = {
   mode: "game",
   difficulty: "easy",
   useTestData: false,
+  activeTenses: [...INITIAL_TENSES],
+  unlockedDuringGame: 0,
   deck: [],
   current: null,
   laneIndex: 1,
   currentX: 0,
   targetX: 0,
   y: 0,
+  isFastDropping: false,
   lastFrameTime: 0,
   animationId: 0,
   spawnTimer: 0,
   resolveTimer: 0,
+  unlockTimer: 0,
+  feedbackTimer: 0,
   isResolving: false,
+  gameOverReason: "",
   score: 0,
   correct: 0,
   errors: 0,
   streak: 0,
+  bestStreak: 0,
   answered: 0,
+  soundEnabled: GAME_RULES.soundDefaultOn,
+  errorStacks: createTenseCounter(),
+  errorStackItems: createTenseStacks(),
+  attemptsByTense: createTenseCounter(),
+  correctByTense: createTenseCounter(),
   errorsByTense: createTenseCounter(),
 };
 
 function createTenseCounter() {
   return Object.fromEntries(Object.keys(TENSES).map((tense) => [tense, 0]));
+}
+
+function createTenseStacks() {
+  return Object.fromEntries(Object.keys(TENSES).map((tense) => [tense, []]));
 }
 
 function showScreen(screen) {
@@ -278,17 +439,207 @@ function shuffle(items) {
   return copy;
 }
 
+function getInitialActiveTenses() {
+  if (!GAME_RULES.enableProgressiveTenseUnlocks) {
+    return [...TENSE_ORDER];
+  }
+
+  return [...INITIAL_TENSES];
+}
+
+function renderLanesAndBins(highlightedTense = "") {
+  playfield.style.setProperty("--lane-count", state.activeTenses.length);
+  playfield.style.setProperty("--error-brick-height", `${GAME_RULES.errorBrickHeight}px`);
+  laneGrid.style.setProperty("--lane-count", state.activeTenses.length);
+  binsContainer.style.setProperty("--lane-count", state.activeTenses.length);
+  laneGrid.innerHTML = "";
+  binsContainer.innerHTML = "";
+
+  state.activeTenses.forEach((tense, index) => {
+    const info = TENSES[tense];
+    const lane = document.createElement("div");
+    lane.className = `lane${tense === highlightedTense ? " lane--new" : ""}`;
+    lane.dataset.laneLabel = info.label;
+    lane.style.setProperty("--tense-color", info.color);
+
+    const stack = document.createElement("div");
+    stack.className = "error-stack";
+    lane.appendChild(stack);
+    laneGrid.appendChild(lane);
+
+    const button = document.createElement("button");
+    button.className = `bin${tense === highlightedTense ? " bin--new" : ""}`;
+    button.type = "button";
+    button.dataset.tense = tense;
+    button.style.setProperty("--tense-color", info.color);
+    button.addEventListener("click", () => setLane(index));
+
+    const label = document.createElement("span");
+    label.textContent = info.label;
+    const hint = document.createElement("small");
+    hint.textContent = info.hint;
+    button.append(label, hint);
+    binsContainer.appendChild(button);
+  });
+
+  bins = Array.from(binsContainer.querySelectorAll(".bin"));
+  lanes = Array.from(laneGrid.querySelectorAll(".lane"));
+  renderErrorStacks();
+  updateLaneHighlights();
+}
+
+function renderHints() {
+  hintPanel.innerHTML = "";
+
+  const summary = document.createElement("summary");
+  summary.textContent = "Rappel des terminaisons";
+  hintPanel.appendChild(summary);
+
+  state.activeTenses.forEach((tense) => {
+    const info = TENSES[tense];
+    const line = document.createElement("p");
+    const strong = document.createElement("strong");
+    strong.textContent = info.label;
+    line.append(strong, ` : ${info.hint}`);
+    hintPanel.appendChild(line);
+  });
+}
+
+function renderErrorStacks() {
+  state.activeTenses.forEach((tense, index) => {
+    const lane = lanes[index];
+    const stack = lane?.querySelector(".error-stack");
+    if (!lane || !stack) return;
+
+    const items = state.errorStackItems[tense] ?? [];
+    const count = items.length;
+    stack.innerHTML = "";
+    lane.classList.toggle("lane--danger", count >= GAME_RULES.maxErrorBricksPerLane - 2);
+    lane.classList.toggle("lane--overflow", count >= GAME_RULES.maxErrorBricksPerLane);
+    lane.style.setProperty("--stack-level", count);
+
+    items.forEach((item) => {
+      const brick = document.createElement("div");
+      brick.className = "error-brick";
+      brick.textContent = item.text;
+      brick.title = `${item.text} : ${TENSES[item.expected].label}`;
+      stack.appendChild(brick);
+    });
+  });
+}
+
+function setLane(index) {
+  if (!state.current || state.isResolving) return;
+  state.laneIndex = Math.max(0, Math.min(state.activeTenses.length - 1, index));
+  state.targetX = getLaneCenter(state.laneIndex);
+  updateLaneHighlights();
+}
+
+function unlockNextTenseIfReady() {
+  if (!GAME_RULES.enableProgressiveTenseUnlocks) return false;
+
+  const unlocks = DIFFICULTIES[state.difficulty].unlocks;
+  const nextTense = TENSE_ORDER.find((tense) => {
+    return !state.activeTenses.includes(tense) && unlocks[tense] && state.correct >= unlocks[tense];
+  });
+
+  if (!nextTense) return false;
+
+  state.activeTenses = TENSE_ORDER.filter((tense) => {
+    return state.activeTenses.includes(tense) || tense === nextTense;
+  });
+  state.unlockedDuringGame += 1;
+  state.deck = [];
+  renderLanesAndBins(nextTense);
+  renderHints();
+  showUnlockBanner(`Nouveau tiroir débloqué : ${TENSES[nextTense].label}`);
+  playSound("unlock");
+  return true;
+}
+
+function showUnlockBanner(message) {
+  window.clearTimeout(state.unlockTimer);
+  unlockBanner.textContent = message;
+  unlockBanner.className = "unlock-banner is-visible";
+  state.unlockTimer = window.setTimeout(() => {
+    unlockBanner.className = "unlock-banner";
+  }, 1900);
+}
+
+let audioContext = null;
+
+function getAudioContext() {
+  const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+  if (!AudioContextClass) return null;
+  if (!audioContext) {
+    audioContext = new AudioContextClass();
+  }
+  return audioContext;
+}
+
+function primeAudio() {
+  if (!state.soundEnabled) return;
+  const context = getAudioContext();
+  if (context?.state === "suspended") {
+    context.resume();
+  }
+}
+
+function playSound(type) {
+  if (!state.soundEnabled) return;
+  const context = getAudioContext();
+  if (!context) return;
+
+  const now = context.currentTime;
+  const patterns = {
+    correct: [
+      [520, 0, 0.075, "sine", 0.045],
+      [720, 0.07, 0.095, "sine", 0.035],
+    ],
+    error: [[164, 0, 0.14, "triangle", 0.055]],
+    unlock: [
+      [392, 0, 0.08, "sine", 0.04],
+      [588, 0.075, 0.1, "sine", 0.035],
+      [784, 0.15, 0.12, "sine", 0.032],
+    ],
+    end: [
+      [330, 0, 0.12, "triangle", 0.04],
+      [220, 0.1, 0.18, "triangle", 0.035],
+    ],
+  };
+
+  (patterns[type] ?? []).forEach(([frequency, offset, duration, wave, volume]) => {
+    const oscillator = context.createOscillator();
+    const gain = context.createGain();
+    oscillator.type = wave;
+    oscillator.frequency.value = frequency;
+    gain.gain.setValueAtTime(0.0001, now + offset);
+    gain.gain.exponentialRampToValueAtTime(volume, now + offset + 0.012);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + offset + duration);
+    oscillator.connect(gain).connect(context.destination);
+    oscillator.start(now + offset);
+    oscillator.stop(now + offset + duration + 0.02);
+  });
+}
+
 function getAvailableForms() {
+  const isActiveForm = (item) => state.activeTenses.includes(item.tense);
+
   if (state.useTestData) {
-    return TEST_FORMS;
+    return TEST_FORMS.filter(isActiveForm);
   }
 
   const allowed = DIFFICULTIES[state.difficulty].allowedLevels;
-  const pool = GAME_FORMS.filter((item) => allowed.includes(item.level));
+  const pool = GAME_FORMS.filter((item) => allowed.includes(item.level) && isActiveForm(item));
 
   if (state.difficulty === "hard") {
     const irregulars = pool.filter((item) => item.irregular);
-    return shuffle([...pool, ...irregulars.slice(0, 22)]);
+    return shuffle([...pool, ...irregulars.slice(0, 28)]);
+  }
+
+  if (state.difficulty === "medium" && state.correct >= 12) {
+    const irregulars = pool.filter((item) => item.irregular);
+    return shuffle([...pool, ...irregulars.slice(0, 12)]);
   }
 
   return pool;
@@ -300,20 +651,32 @@ function refillDeckIfNeeded() {
 }
 
 function resetStats() {
+  state.activeTenses = getInitialActiveTenses();
+  state.unlockedDuringGame = 0;
+  state.deck = [];
   state.current = null;
-  state.laneIndex = 1;
+  state.laneIndex = Math.floor(state.activeTenses.length / 2);
   state.currentX = 0;
   state.targetX = 0;
   state.y = 0;
+  state.isFastDropping = false;
   state.lastFrameTime = 0;
   state.spawnTimer = 0;
   state.resolveTimer = 0;
+  state.unlockTimer = 0;
+  state.feedbackTimer = 0;
   state.isResolving = false;
+  state.gameOverReason = "";
   state.score = 0;
   state.correct = 0;
   state.errors = 0;
   state.streak = 0;
+  state.bestStreak = 0;
   state.answered = 0;
+  state.errorStacks = createTenseCounter();
+  state.errorStackItems = createTenseStacks();
+  state.attemptsByTense = createTenseCounter();
+  state.correctByTense = createTenseCounter();
   state.errorsByTense = createTenseCounter();
 }
 
@@ -322,6 +685,7 @@ function updateStats() {
   correctEl.textContent = state.correct;
   errorEl.textContent = state.errors;
   streakEl.textContent = state.streak;
+  streakEl.parentElement.classList.toggle("stat--combo", state.streak >= 3);
 
   if (state.mode === "training") {
     progressEl.textContent = `${state.answered} réponses`;
@@ -335,7 +699,8 @@ function updateStats() {
 function currentSpeed() {
   const difficulty = DIFFICULTIES[state.difficulty];
   const speed = difficulty.baseSpeed + state.answered * difficulty.speedIncrease;
-  return Math.min(speed, difficulty.maxSpeed);
+  const cappedSpeed = Math.min(speed, difficulty.maxSpeed);
+  return state.isFastDropping ? cappedSpeed * GAME_RULES.downAccelerationFactor : cappedSpeed;
 }
 
 function getLaneCenter(index) {
@@ -351,6 +716,7 @@ function clearLaneHighlights() {
 
 function updateLaneHighlights() {
   clearLaneHighlights();
+  if (!state.current || state.isResolving) return;
   bins[state.laneIndex]?.classList.add("bin--active");
   lanes[state.laneIndex]?.classList.add("is-active");
 }
@@ -359,17 +725,26 @@ function startGame({ useTestData = false } = {}) {
   cancelAnimationFrame(state.animationId);
   window.clearTimeout(state.spawnTimer);
   window.clearTimeout(state.resolveTimer);
+  window.clearTimeout(state.unlockTimer);
+  window.clearTimeout(state.feedbackTimer);
   state.mode = getSelectedValue("mode");
   state.difficulty = getSelectedValue("difficulty");
   state.useTestData = useTestData;
-  state.deck = shuffle(getAvailableForms());
+  state.soundEnabled = soundToggle.checked;
   resetStats();
+  state.deck = shuffle(getAvailableForms());
+  fallingWord.hidden = true;
   hintPanel.hidden = !hintToggle.checked;
   hintPanel.open = hintToggle.checked;
+  renderLanesAndBins();
+  renderHints();
   updateStats();
   clearFeedback();
   clearLaneHighlights();
+  unlockBanner.className = "unlock-banner";
+  unlockBanner.textContent = "";
   showScreen(gameScreen);
+  primeAudio();
   playfield.focus();
   state.spawnTimer = window.setTimeout(spawnWord, 180);
 }
@@ -381,9 +756,14 @@ function spawnWord() {
   }
 
   refillDeckIfNeeded();
+  if (state.deck.length === 0) {
+    finishGame();
+    return;
+  }
+
   state.current = state.deck.shift();
   state.isResolving = false;
-  state.laneIndex = Math.floor(GAME_RULES.laneCount / 2);
+  state.laneIndex = Math.floor(state.activeTenses.length / 2);
   state.targetX = getLaneCenter(state.laneIndex);
   state.currentX = state.targetX;
   state.y = GAME_RULES.spawnY;
@@ -427,13 +807,11 @@ function hasReachedBins() {
 
 function moveWord(direction) {
   if (!state.current || state.isResolving) return;
-  state.laneIndex = Math.max(0, Math.min(GAME_RULES.laneCount - 1, state.laneIndex + direction));
-  state.targetX = getLaneCenter(state.laneIndex);
-  updateLaneHighlights();
+  setLane(state.laneIndex + direction);
 }
 
 function getChosenTense() {
-  return bins[state.laneIndex]?.dataset.tense ?? bins[1].dataset.tense;
+  return bins[state.laneIndex]?.dataset.tense ?? state.activeTenses[0];
 }
 
 function resolveAnswer() {
@@ -450,25 +828,31 @@ function resolveAnswer() {
   const expectedBin = bins.find((bin) => bin.dataset.tense === expected);
 
   state.answered += 1;
+  state.attemptsByTense[expected] += 1;
 
   if (isCorrect) {
     state.correct += 1;
     state.streak += 1;
-    state.score += 10 + Math.min(state.streak, 6) * 2;
+    state.bestStreak = Math.max(state.bestStreak, state.streak);
+    state.correctByTense[expected] += 1;
+    state.score += GAME_RULES.correctBaseScore + Math.min(state.streak * GAME_RULES.comboBonusStep, GAME_RULES.comboBonusCap);
     fallingWord.classList.add("correct");
-    chosenBin.classList.remove("bin--active");
-    chosenBin.classList.add("bin--target");
-    showFeedback(`Correct : ${expectedLabel}`, true);
+    chosenBin?.classList.remove("bin--active");
+    chosenBin?.classList.add("bin--target");
+    showFeedback(state.streak >= 3 ? `Correct : ${expectedLabel} · série x${state.streak}` : `Correct : ${expectedLabel}`, true);
+    playSound("correct");
   } else {
     state.errors += 1;
     state.streak = 0;
-    state.score = Math.max(0, state.score - 3);
+    state.score = Math.max(0, state.score - GAME_RULES.errorPenalty);
     state.errorsByTense[expected] += 1;
     fallingWord.classList.add("wrong");
-    chosenBin.classList.remove("bin--active");
-    chosenBin.classList.add("bin--error");
-    expectedBin.classList.add("bin--target");
-    showFeedback(`Erreur : c'était du ${expectedLabel}`, false);
+    chosenBin?.classList.remove("bin--active");
+    chosenBin?.classList.add("bin--error");
+    expectedBin?.classList.add("bin--target");
+    addErrorBrick(chosen, state.current);
+    showFeedback(`Erreur : c'était du ${expectedLabel}. ${TENSES[expected].errorHint}.`, false);
+    playSound("error");
   }
 
   updateStats();
@@ -481,34 +865,67 @@ function resolveAnswer() {
       finishGame();
     } else {
       state.current = null;
+      unlockNextTenseIfReady();
       state.spawnTimer = window.setTimeout(spawnWord, GAME_RULES.spawnDelayMs);
     }
-  }, 760);
+  }, GAME_RULES.feedbackDurationMs);
+}
+
+function addErrorBrick(chosenTense, form) {
+  state.errorStacks[chosenTense] += 1;
+  state.errorStackItems[chosenTense].push({
+    text: form.text,
+    expected: form.tense,
+  });
+
+  if (state.errorStacks[chosenTense] >= GAME_RULES.maxErrorBricksPerLane) {
+    state.gameOverReason = `Débordement du tiroir ${TENSES[chosenTense].label}`;
+  }
+
+  renderErrorStacks();
 }
 
 function showFeedback(message, isCorrect) {
+  window.clearTimeout(state.feedbackTimer);
   feedback.textContent = message;
   feedback.className = `feedback is-visible ${isCorrect ? "is-correct" : "is-wrong"}`;
+  state.feedbackTimer = window.setTimeout(() => {
+    feedback.className = "feedback";
+  }, GAME_RULES.feedbackDurationMs + 260);
 }
 
 function clearFeedback() {
+  window.clearTimeout(state.feedbackTimer);
   feedback.textContent = "";
   feedback.className = "feedback";
 }
 
 function shouldEndGame() {
+  const overflowTense = state.activeTenses.find((tense) => state.errorStacks[tense] >= GAME_RULES.maxErrorBricksPerLane);
+  if (overflowTense) {
+    state.gameOverReason = `Débordement du tiroir ${TENSES[overflowTense].label}`;
+    return true;
+  }
+
   if (state.mode === "training") return false;
-  return state.errors >= GAME_RULES.maxErrors || state.answered >= GAME_RULES.wordsPerGame;
+  if (state.answered >= GAME_RULES.wordsPerGame) {
+    state.gameOverReason = "Manche terminée";
+    return true;
+  }
+
+  return false;
 }
 
 function finishGame() {
   cancelAnimationFrame(state.animationId);
   window.clearTimeout(state.spawnTimer);
   window.clearTimeout(state.resolveTimer);
+  window.clearTimeout(state.feedbackTimer);
   fallingWord.hidden = true;
   state.current = null;
   clearLaneHighlights();
   clearFeedback();
+  playSound("end");
   renderFinalSummary();
   showScreen(endScreen);
 }
@@ -516,25 +933,53 @@ function finishGame() {
 function renderFinalSummary() {
   const total = state.correct + state.errors;
   const successRate = total === 0 ? 0 : Math.round((state.correct / total) * 100);
+  const playedTenses = TENSE_ORDER.filter((tense) => state.attemptsByTense[tense] > 0);
+  const rankedBySuccess = [...playedTenses].sort((a, b) => {
+    const rateA = state.correctByTense[a] / state.attemptsByTense[a];
+    const rateB = state.correctByTense[b] / state.attemptsByTense[b];
+    return rateB - rateA || state.attemptsByTense[b] - state.attemptsByTense[a];
+  });
+  const rankedByErrors = [...playedTenses].sort((a, b) => {
+    return state.errorsByTense[b] - state.errorsByTense[a] || state.attemptsByTense[b] - state.attemptsByTense[a];
+  });
+  const bestTense = rankedBySuccess[0] ? TENSES[rankedBySuccess[0]].label : "à découvrir";
+  const hardestTense = rankedByErrors[0] && state.errorsByTense[rankedByErrors[0]] > 0 ? TENSES[rankedByErrors[0]].label : "aucun";
 
   finalSummary.innerHTML = "";
   [
+    ["Fin", state.gameOverReason || "Partie terminée"],
     ["Score final", state.score],
-    ["Réponses", total],
+    ["Réponses", state.answered],
     ["Réussite", `${successRate} %`],
     ["Erreurs", state.errors],
+    ["Meilleure série", state.bestStreak],
+    ["Tiroirs débloqués", state.unlockedDuringGame],
+    ["Temps le plus réussi", bestTense],
+    ["Temps à retravailler", hardestTense],
   ].forEach(([label, value]) => {
     const card = document.createElement("div");
     card.className = "summary-card";
-    card.innerHTML = `<span>${label}</span><strong>${value}</strong>`;
+    const labelEl = document.createElement("span");
+    labelEl.textContent = label;
+    const valueEl = document.createElement("strong");
+    valueEl.textContent = value;
+    card.append(labelEl, valueEl);
     finalSummary.appendChild(card);
   });
 
   tenseBreakdown.innerHTML = "";
-  Object.entries(TENSES).forEach(([tense, info]) => {
+  TENSE_ORDER.forEach((tense) => {
+    const info = TENSES[tense];
+    const attempts = state.attemptsByTense[tense];
+    const correct = state.correctByTense[tense];
+    const errors = state.errorsByTense[tense];
     const row = document.createElement("div");
     row.className = "breakdown-row";
-    row.innerHTML = `<strong>${info.label}</strong><span>${state.errorsByTense[tense]} erreur(s)</span>`;
+    const label = document.createElement("strong");
+    label.textContent = info.label;
+    const value = document.createElement("span");
+    value.textContent = attempts > 0 ? `${correct}/${attempts} OK · ${errors} erreur(s)` : "non joué";
+    row.append(label, value);
     tenseBreakdown.appendChild(row);
   });
 }
@@ -555,14 +1000,24 @@ homeButton.addEventListener("click", () => {
   cancelAnimationFrame(state.animationId);
   window.clearTimeout(state.spawnTimer);
   window.clearTimeout(state.resolveTimer);
+  window.clearTimeout(state.unlockTimer);
+  window.clearTimeout(state.feedbackTimer);
   fallingWord.hidden = true;
   state.current = null;
+  state.isFastDropping = false;
   clearLaneHighlights();
+  clearFeedback();
   showScreen(homeScreen);
 });
 
 backToHomeButton.addEventListener("click", () => {
   showScreen(homeScreen);
+});
+
+soundToggle.checked = GAME_RULES.soundDefaultOn;
+soundToggle.addEventListener("change", () => {
+  state.soundEnabled = soundToggle.checked;
+  if (state.soundEnabled) primeAudio();
 });
 
 window.addEventListener("keydown", (event) => {
@@ -577,6 +1032,21 @@ window.addEventListener("keydown", (event) => {
     event.preventDefault();
     moveWord(1);
   }
+
+  if (event.key === "ArrowDown") {
+    event.preventDefault();
+    state.isFastDropping = true;
+  }
+});
+
+window.addEventListener("keyup", (event) => {
+  if (event.key === "ArrowDown") {
+    state.isFastDropping = false;
+  }
+});
+
+window.addEventListener("blur", () => {
+  state.isFastDropping = false;
 });
 
 window.addEventListener("resize", () => {
